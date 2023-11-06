@@ -20,8 +20,8 @@ const militarySchema = new Schema({
     required: true,
   },
   phone: {
-    type: Number,
-    required: true,
+    type: String,
+    // required: true,
   },
   info: {
     type: String,

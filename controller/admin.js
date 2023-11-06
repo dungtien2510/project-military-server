@@ -1,14 +1,18 @@
 const User = require("../models/user");
 const { validationResult, check, body } = require("express-validator");
 // const io = require("../socket");
-
+const Military = require("../models/military");
 // valid mititary
 exports.militaryValid = [
   check("name")
-    .matches(/^[A-Z][a-z]*(?:\s[A-Z][a-z]*)+$/g)
-    .withMessage("Vui lòng nhập họ tên đầy đủ và viết hoa chữ cái đầu tiên!"),
+    // .matches(/^[A-Z][a-z]*(?:\s[A-Z][a-z]*)+$/g)
+    .not()
+    .isEmpty()
+    // .isAlphanumeric()
+    .withMessage("Vui lòng nhập họ tên!"),
   body("id_number")
-    .notEmpty()
+    .not()
+    .isEmpty()
     .withMessage("Vui lòng nhập số hiệu!")
     .custom(async (value, { req }) => {
       const military = await Military.findOne({
@@ -19,20 +23,27 @@ exports.militaryValid = [
       }
     }),
 
-  body("object").notEmpty().withMessage("Vui lòng nhập đối tượng!"),
-  body("rank").notEmpty().withMessage("Vui lòng nhập nhập cấp bậc!"),
+  body("object").not().isEmpty().withMessage("Vui lòng nhập đối tượng!"),
+  body("rank").not().isEmpty().withMessage("Vui lòng nhập nhập cấp bậc!"),
   body("rank_time")
-    .notEmpty()
+    .not()
+    .isEmpty()
     .withMessage("Vui lòng nhập nhập tháng năm nhập!"),
-  body("academic_level").notEmpty().withMessage("Vui lòng nhập trình độ!"),
-  body("position").notEmpty().withMessage("Vui lòng nhập chức vụ!"),
-  body("location").notEmpty().withMessage("Vui lòng nhập đơn vị!"),
-  body("birthday").notEmpty().withMessage("Vui lòng nhập ngày tháng năm sinh!"),
-  body("join_army").notEmpty().withMessage("Vui lòng nhập tháng năm nhập ngũ!"),
-  body("gender").notEmpty().withMessage("Vui lòng nhập giới tính!"),
-  body("hometown").notEmpty().withMessage("Vui lòng nhập quê quán!"),
-  body("address").notEmpty().withMessage("Vui lòng nhập địa chỉ!"),
-  body("infor").notEmpty().withMessage("Vui lòng nhập thông tin liên hệ!"),
+  body("academic_level").not().isEmpty().withMessage("Vui lòng nhập trình độ!"),
+  body("position").not().isEmpty().withMessage("Vui lòng nhập chức vụ!"),
+  body("location").not().isEmpty().withMessage("Vui lòng nhập đơn vị!"),
+  body("birthday")
+    .not()
+    .isEmpty()
+    .withMessage("Vui lòng nhập ngày tháng năm sinh!"),
+  body("join_army")
+    .not()
+    .isEmpty()
+    .withMessage("Vui lòng nhập tháng năm nhập ngũ!"),
+  body("gender").not().isEmpty().withMessage("Vui lòng nhập giới tính!"),
+  body("hometown").not().isEmpty().withMessage("Vui lòng nhập quê quán!"),
+  body("address").not().isEmpty().withMessage("Vui lòng nhập địa chỉ!"),
+  body("info").not().isEmpty().withMessage("Vui lòng nhập thông tin liên hệ!"),
 ];
 
 //post add mititary
@@ -59,7 +70,7 @@ exports.postAddMilitary = async (req, res, next) => {
     gender,
     hometown,
     address,
-    infor,
+    info,
   } = req.body;
   try {
     const military = new Military({
@@ -76,7 +87,7 @@ exports.postAddMilitary = async (req, res, next) => {
       gender,
       hometown,
       address,
-      infor,
+      info,
     });
 
     const result = await military.save();
