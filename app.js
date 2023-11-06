@@ -23,8 +23,8 @@ const MONGODB_URI =
   "mongodb+srv://dungtien2510:dung25101997@cluster0.ypzklxr.mongodb.net/army?retryWrites=true&w=majority";
 
 //tạo máy chủ và xuất nó để sử dụng websocket
-const server = http.createServer(app);
-module.exports = server;
+// const server = http.createServer(app);
+// module.exports = server;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////
@@ -164,10 +164,10 @@ mongoose
     // //io.on("connection", (socket) => { ... }): Khi một client kết nối với máy chủ WebSocket, đoạn mã này sẽ được thực thi.
     // // Nó in ra "Connected client" vào console để xác nhận việc kết nối thành công.
     // // Tại đây, bạn có thể xử lý sự kiện và truyền dữ liệu giữa server và client thông qua kết nối WebSocket.
-    const io = require("./socket").init(server);
-    io.on("connection", (socket) => {
-      console.log("client Connected!");
-    });
+    // const io = require("./socket").init(server);
+    // io.on("connection", (socket) => {
+    //   console.log("client Connected!");
+    // });
     // const server = app.listen(5000);
     // const io = require("socket.io")(server);
 

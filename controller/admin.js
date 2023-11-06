@@ -1,7 +1,8 @@
 const User = require("../models/user");
 const { validationResult, check, body } = require("express-validator");
-const io = require("../socket");
+// const io = require("../socket");
 
+// valid mititary
 exports.militaryValid = [
   check("name")
     .matches(/^[A-Z][a-z]*(?:\s[A-Z][a-z]*)+$/g)
@@ -34,6 +35,7 @@ exports.militaryValid = [
   body("infor").notEmpty().withMessage("Vui lòng nhập thông tin liên hệ!"),
 ];
 
+//post add mititary
 exports.postAddMilitary = async (req, res, next) => {
   const error = validationResult(req);
   if (!error.isEmpty()) {
@@ -88,6 +90,7 @@ exports.postAddMilitary = async (req, res, next) => {
   }
 };
 
+//detete military
 exports.deleteMilitary = async (req, res, next) => {
   try {
     const idMilitary = req.params.id;
@@ -100,7 +103,8 @@ exports.deleteMilitary = async (req, res, next) => {
   }
 };
 
-exports.editMitiltary = async (req, res, next) => {
+//edit military
+exports.editMilitary = async (req, res, next) => {
   const error = validationResult(req);
   if (!error.isEmpty()) {
     return res.status(422).json({

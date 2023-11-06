@@ -13,8 +13,8 @@ const path = require("path");
 //pdfkit là một gói thư viện của Node.js được sử dụng để tạo và tùy chỉnh tập tin PDF
 const PDFDocument = require("pdfkit");
 
-const { getIO } = require("../socket");
-const { result } = require("lodash");
+// const { getIO } = require("../socket");
+// const { result } = require("lodash");
 
 const Family = require("../models/family");
 

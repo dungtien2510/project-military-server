@@ -106,7 +106,7 @@ router.post(
 router.put(
   "/military/edit/:id",
   adminController.militaryValid,
-  adminController.editMitiltary
+  adminController.editMilitary
 );
 
 //router add military
