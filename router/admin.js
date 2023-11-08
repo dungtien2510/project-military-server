@@ -140,5 +140,9 @@ router.get("/location/list", adminController.getListLocation);
 //get location details
 router.get("/location/details/:id", adminController.getLocationDetails);
 
+//delete location vẫn dữ lại đơn vị cấp dưới
 router.delete("/location/delete/:id", adminController.deleteLocation);
+
+//destroy location xóa luôn đơn vị cấp dưới
+router.delete("/location/destroy/:id", adminController.destroyLocation);
 module.exports = router;

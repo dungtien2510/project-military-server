@@ -7,12 +7,11 @@ const locationSchema = new Schema({
     type: String,
     required: true,
   },
-  lower_level: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Location",
-    },
-  ],
+  superior: {
+    type: Schema.Types.ObjectId,
+    ref: "Location",
+  },
+
   master: {
     id: {
       type: Schema.Types.ObjectId,

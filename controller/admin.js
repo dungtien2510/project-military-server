@@ -212,13 +212,11 @@ exports.locationValidator = [
     .isEmpty()
     .withMessage("Invalid Level")
     .custom(async (value, { req }) => {
-      if (req.body.lower_level) {
-        const lower = req.body.lower_level.split(";");
-        const locationLower = await Location.find({
-          _id: { $in: lower },
-        }).exec();
-        if (locationLower.some((item) => item.level <= value))
-          throw new Error("invalid level");
+      if (req.body.superior) {
+        const locationSuperior = await Location.findById(req.body.superior);
+        if (!locationSuperior) throw new Error("Invalid superior not found");
+        if (locationSuperior.level >= value)
+          throw new Error("invalid superior level");
       }
     }),
   body("id_master").custom(async (value, { req }) => {
@@ -244,8 +242,8 @@ exports.postAddLocation = async (req, res, next) => {
     name: req.body.name,
     level: req.body.level,
   };
-  if (req.body.lower_level) {
-    locationData.lower_level = req.body.lower_level.split(";");
+  if (req.body.superior) {
+    locationData.superior = req.body.superior;
   }
   if (req.body.id_master) {
     locationData.master = {
@@ -260,6 +258,7 @@ exports.postAddLocation = async (req, res, next) => {
     //   if (locationLower.some((item) => item.level <= req.body.level))
     //     throw new Error("invalid level");
     // }
+
     const location = new Location(locationData);
     await location.save();
     return res
@@ -285,13 +284,11 @@ exports.locationEditValidator = [
     .isEmpty()
     .withMessage("Invalid Level")
     .custom(async (value, { req }) => {
-      if (req.body.lower_level) {
-        const lower = req.body.lower_level.split(";");
-        const locationLower = await Location.find({
-          _id: { $in: lower },
-        }).exec();
-        if (locationLower.some((item) => item.level <= value))
-          throw new Error("invalid level");
+      if (req.body.superior) {
+        const locationSuperior = await Location.findById(req.body.superior);
+        if (!locationSuperior) throw new Error("Invalid superior not found");
+        if (locationSuperior.level >= value)
+          throw new Error("invalid superior level");
       }
     }),
 ];
@@ -309,9 +306,8 @@ exports.postEditLocation = async (req, res, next) => {
     name: req.body.name,
     level: req.body.level,
   };
-  if (req.body.lower_level) {
-    locationData.lower_level = req.body.lower_level.split(";");
-    console.log(locationData);
+  if (req.body.superior) {
+    locationData.superior = req.body.superior;
   }
   if (req.body.id_master && req.body.fullName) {
     locationData.master = {
@@ -360,12 +356,31 @@ exports.getLocationDetails = async (req, res, next) => {
   }
 };
 
-//delete location details
+//delete location details để lại đơn vị cấp dưới
 exports.deleteLocation = async (req, res, next) => {
   const idLocation = req.params.id;
   try {
+    const filter = { superior: idLocation };
+    const update = { $unset: { superior: 1 } };
+
+    const numberUpdate = await Location.updateMany(filter, update);
+    console.log(numberUpdate);
     await Location.findByIdAndDelete(idLocation);
-    return res.status(200).json({ message: "Success" });
+    return res.status(200).json({ message: "Success", numberUpdate });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+// destroy a location
+exports.destroyLocation = async (req, res, next) => {
+  const idLocation = req.params.id;
+  try {
+    await Location.findByIdAndDelete(idLocation);
+    const result = await Location.deleteMany({ superior: idLocation });
+    return res.status(200).json({ message: "Success", numberDelete: result });
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;
