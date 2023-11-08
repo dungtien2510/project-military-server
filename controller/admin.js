@@ -2,6 +2,8 @@ const User = require("../models/user");
 const { validationResult, check, body } = require("express-validator");
 // const io = require("../socket");
 const Military = require("../models/military");
+
+const Location = require("../models/location");
 // valid mititary
 exports.militaryValid = [
   check("name")
@@ -186,6 +188,138 @@ exports.editMilitary = async (req, res, next) => {
     res
       .status(200)
       .json({ message: "Cập nhật thành công!", result: result._id });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+//////////////////
+// validator add location
+
+exports.locationValidator = [
+  check("name")
+    .not()
+    .isEmpty()
+    .withMessage("Invalid Name")
+    .custom(async (value, { req }) => {
+      const locationMatch = await Location.findOne({ name: value });
+      if (locationMatch) throw new Error("Tên đơn vị đã tồn tại");
+    }),
+];
+
+//add location
+exports.postAddLocation = async (req, res, next) => {
+  const error = validationResult(req);
+  if (!error.isEmpty()) {
+    return res.status(422).json({
+      errorMessage: error.array()[0].msg,
+      oldInput: req.body,
+      validationErrors: error.array(),
+    });
+  }
+
+  const locationData = {
+    name: req.body.name,
+    lower_level: req.body.lower_level,
+  };
+  if (req.body.id_master) {
+    locationData.master = {
+      id: req.body.id_master,
+      fullName: req.body.fullName,
+    };
+  }
+  try {
+    const location = new Location(locationData);
+    await location.save();
+    return res
+      .status(200)
+      .json({ message: "Thêm thành công!", location: location });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+exports.locationEditValidator = [
+  check("name").not().isEmpty().withMessage("Invalid Name"),
+  body("id_master").custom(async (value, { req }) => {
+    if (value) {
+      const idMilitary = await Military.findById(value);
+      if (!idMilitary) throw new Error("Invalid id Master");
+    }
+  }),
+];
+
+//edit location
+exports.postEditLocation = async (req, res, next) => {
+  const error = validationResult(req);
+  if (!error.isEmpty())
+    res.status(422).json({
+      errorMessage: error.array()[0].msg,
+      oldInput: req.body,
+      validationErrors: error.array(),
+    });
+  const locationData = {
+    name: req.body.name,
+  };
+  if (req.body.lower_level) {
+    locationData.lower_level = req.body.lower_level.split(";");
+  }
+  if (req.body.id_master && req.body.fullName) {
+    locationData.master = {
+      fullname: req.body.fullName,
+      id: req.body.id_master,
+    };
+  }
+  try {
+    const location = await Location.findByIdAndUpdate(
+      req.params.id,
+      locationData
+    );
+    return res.status(200).json({ message: "Success", result: location });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+// get location
+exports.getListLocation = async (req, res, next) => {
+  try {
+    const listLocation = await Location.find().select("name master");
+    return res.status(200).json({ message: "Success", result: listLocation });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+//get location details
+exports.getLocationDetails = async (req, res, next) => {
+  const idLocation = req.params.id;
+  try {
+    const locationDetails = await Location.findById(idLocation);
+    return res
+      .status(200)
+      .json({ message: "Success", result: locationDetails });
+  } catch (err) {
+    const error = new Error(error);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+//delete location details
+exports.deleteLocation = async (req, res, next) => {
+  const idLocation = req.params.id;
+  try {
+    await Location.findByIdAndDelete(idLocation);
+    return res.status(200).json({ message: "Success" });
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;

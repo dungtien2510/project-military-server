@@ -6,6 +6,7 @@ const familySchema = new Schema({
   id_military: {
     type: Schema.Types.ObjectId,
     required: true,
+    ref: "military",
   },
 
   father: {

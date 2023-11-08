@@ -36,7 +36,8 @@ const militarySchema = new Schema({
     required: true,
   },
   position: {
-    type: String,
+    type: Schema.Types.ObjectId,
+    ref: "Location",
     require: true,
   },
   location: {

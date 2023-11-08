@@ -119,4 +119,26 @@ router.post(
 //router remove military
 router.delete("/military/remove", adminController.deleteMilitary);
 
+//////////////////////
+// router add location
+router.post(
+  "/location/add",
+  adminController.locationValidator,
+  adminController.postAddLocation
+);
+
+// edit location
+router.put(
+  "/location/edit/:id",
+  adminController.locationEditValidator,
+  adminController.postEditLocation
+);
+
+// get list of location
+router.get("/location/list", adminController.getListLocation);
+
+//get location details
+router.get("/location/details/:id", adminController.getLocationDetails);
+
+router.delete("/location/delete/:id", adminController.deleteLocation);
 module.exports = router;

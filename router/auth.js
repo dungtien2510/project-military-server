@@ -66,7 +66,8 @@ router.post(
         if (user) throw new Error("Tên tài khoản đã tồn tại!");
       }),
     body("fullName")
-      .matches(/^[A-Z][a-z]*( [A-Z][a-z]*)*$/)
+      .not()
+      .isEmpty()
       .withMessage("Họ và tên không khớp với định dạng"),
     body("position").not().isEmpty().withMessage("Position not empty"),
     body("password").isLength({ min: 8 }).withMessage("Invalid Password"),
