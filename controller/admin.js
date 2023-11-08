@@ -207,6 +207,26 @@ exports.locationValidator = [
       const locationMatch = await Location.findOne({ name: value });
       if (locationMatch) throw new Error("Tên đơn vị đã tồn tại");
     }),
+  body("level")
+    .not()
+    .isEmpty()
+    .withMessage("Invalid Level")
+    .custom(async (value, { req }) => {
+      if (req.body.lower_level) {
+        const lower = req.body.lower_level.split(";");
+        const locationLower = await Location.find({
+          _id: { $in: lower },
+        }).exec();
+        if (locationLower.some((item) => item.level <= value))
+          throw new Error("invalid level");
+      }
+    }),
+  body("id_master").custom(async (value, { req }) => {
+    if (value) {
+      const idMilitary = await Military.findById(value);
+      if (!idMilitary) throw new Error("Invalid id Master");
+    }
+  }),
 ];
 
 //add location
@@ -222,8 +242,11 @@ exports.postAddLocation = async (req, res, next) => {
 
   const locationData = {
     name: req.body.name,
-    lower_level: req.body.lower_level,
+    level: req.body.level,
   };
+  if (req.body.lower_level) {
+    locationData.lower_level = req.body.lower_level.split(";");
+  }
   if (req.body.id_master) {
     locationData.master = {
       id: req.body.id_master,
@@ -231,6 +254,12 @@ exports.postAddLocation = async (req, res, next) => {
     };
   }
   try {
+    // if (req.body.lower_level) {
+    //   const lower = req.body.lower_level.split(";");
+    //   const locationLower = await Location.find({ _id: { $in: lower } }).exec();
+    //   if (locationLower.some((item) => item.level <= req.body.level))
+    //     throw new Error("invalid level");
+    // }
     const location = new Location(locationData);
     await location.save();
     return res
@@ -251,6 +280,20 @@ exports.locationEditValidator = [
       if (!idMilitary) throw new Error("Invalid id Master");
     }
   }),
+  body("level")
+    .not()
+    .isEmpty()
+    .withMessage("Invalid Level")
+    .custom(async (value, { req }) => {
+      if (req.body.lower_level) {
+        const lower = req.body.lower_level.split(";");
+        const locationLower = await Location.find({
+          _id: { $in: lower },
+        }).exec();
+        if (locationLower.some((item) => item.level <= value))
+          throw new Error("invalid level");
+      }
+    }),
 ];
 
 //edit location
@@ -264,9 +307,11 @@ exports.postEditLocation = async (req, res, next) => {
     });
   const locationData = {
     name: req.body.name,
+    level: req.body.level,
   };
   if (req.body.lower_level) {
     locationData.lower_level = req.body.lower_level.split(";");
+    console.log(locationData);
   }
   if (req.body.id_master && req.body.fullName) {
     locationData.master = {
@@ -277,7 +322,8 @@ exports.postEditLocation = async (req, res, next) => {
   try {
     const location = await Location.findByIdAndUpdate(
       req.params.id,
-      locationData
+      locationData,
+      { new: true }
     );
     return res.status(200).json({ message: "Success", result: location });
   } catch (err) {
