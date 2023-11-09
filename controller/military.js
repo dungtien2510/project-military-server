@@ -18,6 +18,10 @@ const PDFDocument = require("pdfkit");
 
 const Family = require("../models/family");
 
+const Location = require("../models/location");
+
+const mongoose = require("mongoose");
+
 //get chi tiết quân nhân
 exports.getIdMilitary = async (req, res, next) => {
   try {
@@ -38,13 +42,16 @@ exports.getInforGeneral = async (req, res, next) => {
     const totalMilitarys = await Military.countDocuments();
 
     //sỹ quan
-    const officer = await Military.count({ object: "officer" });
+    const officer = await Military.countDocuments({ object: "officer" });
 
     //quân nhân chuyên nghiệp
-    const pro_serviceman = await Military.count({ object: " pro_serviceman" });
+    const pro_serviceman = await Military.countDocuments({
+      object: "pro_serviceman",
+    });
 
     //chiến sĩ
-    const soldier = await Military.count({ object: "soldier" });
+    const soldier = await Military.countDocuments({ object: "soldier" });
+
     res.status(200).json({
       message: "Success",
       result: {
@@ -74,12 +81,48 @@ exports.getMilitarys = async (req, res, next) => {
     const join_army = req.query.join_army;
     const object = req.query.object;
     if (rank) query.rank = rank;
-    if (location) query.location = location;
+    // if (location) query.location = location;
     if (join_army) query.join_army = join_army;
     if (birthday) query.birthday = birthday;
     if (position) query.position = position;
     if (object) query.object = object;
-    const totalMilitarys = await Military.count(query);
+    let arrayLocation;
+    if (location) {
+      arrayLocation = await Location.aggregate([
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(location),
+          },
+        },
+        {
+          $graphLookup: {
+            from: "locations",
+            startWith: "$_id",
+            connectFromField: "_id",
+            connectToField: "superior",
+            as: "locationsHierarchy",
+            // restrictSearchWithMatch: {}, // Có thể thêm điều kiện tìm kiếm nếu cần
+            // depthField: "depth", // có thể lấy thông tin độ sâu từ trường depth
+            // maxDepth: 3, // Đặt giá trị tối đa cho độ sâu
+          },
+        },
+        {
+          $project: {
+            "locationsHierarchy._id": 1, // chỉ lấy phần _id của location
+            // "locationsHierarchy.name": 1, // chỉ lấy phần name của location
+            // "locationsHierarchy.depth": 1, // thông tin độ sâu
+          },
+        },
+      ]);
+      const locations = arrayLocation[0].locationsHierarchy.map(
+        (item) => item._id
+      );
+      locations.push(arrayLocation[0]._id);
+      console.log(locations);
+      query["location.id"] = { $in: locations };
+    }
+
+    const totalMilitarys = await Military.countDocuments(query);
     const military = await Military.find(query)
       .select(
         "name rank object position location birthday join_army hometown address"
@@ -87,9 +130,10 @@ exports.getMilitarys = async (req, res, next) => {
       .skip(skip)
       .limit(limit)
       .exec();
-    res
-      .status(200)
-      .json({ military: military, totalMilitarys: totalMilitarys });
+    res.status(200).json({
+      military: military,
+      totalMilitarys: totalMilitarys,
+    });
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;

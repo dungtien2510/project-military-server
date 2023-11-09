@@ -78,6 +78,8 @@ exports.postAddMilitary = async (req, res, next) => {
     info,
   } = req.body;
   try {
+    const name_location = await Location.findById(location);
+
     const military = new Military({
       name,
       id_number,
@@ -86,7 +88,7 @@ exports.postAddMilitary = async (req, res, next) => {
       rank_time: new Date(rank_time),
       academic_level,
       position,
-      location,
+      location: { name_location: name_location.name, id: location },
       birthday: new Date(birthday),
       join_army: new Date(join_army),
       gender,

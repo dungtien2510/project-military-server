@@ -117,7 +117,7 @@ router.post(
 );
 
 //router remove military
-router.delete("/military/remove", adminController.deleteMilitary);
+router.delete("/military/delete/:id", adminController.deleteMilitary);
 
 //////////////////////
 // router add location

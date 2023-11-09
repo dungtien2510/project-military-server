@@ -36,13 +36,16 @@ const militarySchema = new Schema({
     required: true,
   },
   position: {
-    type: Schema.Types.ObjectId,
-    ref: "Location",
-    require: true,
-  },
-  location: {
     type: String,
     required: true,
+  },
+  location: {
+    name_location: { type: String, required: true },
+    id: {
+      type: Schema.Types.ObjectId,
+      ref: "Location",
+      require: true,
+    },
   },
   birthday: {
     type: Date,
