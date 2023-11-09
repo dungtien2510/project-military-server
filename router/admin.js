@@ -6,6 +6,7 @@ const authController = require("../controller/auth");
 const User = require("../models/user");
 const router = express.Router();
 
+const Military = require("../models/military");
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////
 ///////////////
@@ -105,6 +106,25 @@ router.post(
 //router edit military
 router.put(
   "/military/edit/:id",
+  [
+    check("id_number")
+      .not()
+      .isEmpty()
+      .withMessage("Vui lòng nhập số hiệu!")
+      .custom(async (value, { req }) => {
+        const military = await Military.find({
+          id_number: value,
+        })
+          .select("_id")
+          .exec();
+        console.log(military);
+        if (military.length > 0) {
+          if (military.some((item) => item._id.toString() !== req.params.id)) {
+            throw new Error("ID đã tồn tại!");
+          }
+        }
+      }),
+  ],
   adminController.militaryValid,
   adminController.editMilitary
 );
@@ -112,6 +132,20 @@ router.put(
 //router add military
 router.post(
   "/military/add",
+  [
+    check("id_number")
+      .not()
+      .isEmpty()
+      .withMessage("Vui lòng nhập số hiệu!")
+      .custom(async (value, { req }) => {
+        const military = await Military.findOne({
+          id_number: req.body.id_number,
+        });
+        if (military) {
+          throw new Error("ID đã tồn tại!");
+        }
+      }),
+  ],
   adminController.militaryValid,
   adminController.postAddMilitary
 );
@@ -119,7 +153,9 @@ router.post(
 //router remove military
 router.delete("/military/delete/:id", adminController.deleteMilitary);
 
-//////////////////////
+///////////////////////////////
+//////////////
+////
 // router add location
 router.post(
   "/location/add",
@@ -130,6 +166,7 @@ router.post(
 // edit location
 router.put(
   "/location/edit/:id",
+
   adminController.locationEditValidator,
   adminController.postEditLocation
 );
