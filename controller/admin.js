@@ -33,7 +33,10 @@ exports.militaryValid = [
     .withMessage("Vui lòng nhập nhập tháng năm nhập!"),
   body("academic_level").not().isEmpty().withMessage("Vui lòng nhập trình độ!"),
   body("position").not().isEmpty().withMessage("Vui lòng nhập chức vụ!"),
-  body("location").not().isEmpty().withMessage("Vui lòng nhập đơn vị!"),
+  body("location").custom(async (value, { req }) => {
+    const locationReq = await Location.findById(value);
+    if (!locationReq) throw new Error("Not found location");
+  }),
   body("birthday")
     .not()
     .isEmpty()
@@ -272,7 +275,17 @@ exports.postAddLocation = async (req, res, next) => {
 };
 
 exports.locationEditValidator = [
-  check("name").not().isEmpty().withMessage("Invalid Name"),
+  check("name")
+    .not()
+    .isEmpty()
+    .withMessage("Invalid Name")
+    .custom(async (value, { req }) => {
+      const locationName = await Location.find({ name: value }).exec();
+      if (locationName.length > 0) {
+        if (locationName.some((item) => item._id.toString() !== req.params.id))
+          throw new Error("Tên đơn vị đã tồn tại!");
+      }
+    }),
   body("id_master").custom(async (value, { req }) => {
     if (value) {
       const idMilitary = await Military.findById(value);
