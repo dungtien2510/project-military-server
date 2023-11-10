@@ -143,7 +143,7 @@ const createTextIndex = async () => {
     const db = client.connection.db;
 
     // Sử dụng phương thức createIndex để tạo text index cho trường "name" trong bộ sưu tập "products" trong cơ sở dữ liệu.
-    await db.collection("military").createIndex({ name: "text" });
+    await db.collection("militaries").createIndex({ name: "text" });
     console.log('Text index for "name" field created successfully.');
   } catch (error) {
     console.error("Error creating text index:", error);

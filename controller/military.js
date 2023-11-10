@@ -74,6 +74,7 @@ exports.getMilitarys = async (req, res, next) => {
     const skip = req.query.skip || 0;
     const limit = req.query.limit || 20;
     const query = {};
+    const name = req.query.name;
     const rank = req.query.rank;
     const position = req.query.position;
     const location = req.query.location;
@@ -118,12 +119,21 @@ exports.getMilitarys = async (req, res, next) => {
         (item) => item._id
       );
       locations.push(arrayLocation[0]._id);
-      console.log(locations);
       query["location.id"] = { $in: locations };
     }
+    const queryfunction = (name) => {
+      const arr = Object.entries(query).map(([key, value]) => ({
+        [key]: value,
+      }));
+      return { $and: [{ $text: { $search: name } }, ...arr] };
+    };
+    const totalMilitarys = await Military.countDocuments(
+      name ? queryfunction(name) : query
+      // { $text: { $search: name } }
+    );
+    const military = await Military.find(name ? queryfunction(name) : query)
+      // { $text: { $search: name } }
 
-    const totalMilitarys = await Military.countDocuments(query);
-    const military = await Military.find(query)
       .select(
         "name rank object position location birthday join_army hometown address"
       )
