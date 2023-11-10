@@ -22,6 +22,12 @@ const Location = require("../models/location");
 
 const mongoose = require("mongoose");
 
+////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+/////////////////////////
+
+//client
+
 //get chi tiết quân nhân
 exports.getIdMilitary = async (req, res, next) => {
   try {
@@ -144,6 +150,222 @@ exports.getMilitarys = async (req, res, next) => {
       military: military,
       totalMilitarys: totalMilitarys,
     });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+///////////////////////////////////////////////////
+//////////////////////////////
+//////////////////
+
+//admin
+
+exports.militaryValid = [
+  check("name")
+    // .matches(/^[A-Z][a-z]*(?:\s[A-Z][a-z]*)+$/g)
+    .not()
+    .isEmpty()
+    // .isAlphanumeric()
+    .withMessage("Vui lòng nhập họ tên!"),
+
+  body("object").not().isEmpty().withMessage("Vui lòng nhập đối tượng!"),
+  body("rank").not().isEmpty().withMessage("Vui lòng nhập nhập cấp bậc!"),
+  body("rank_time")
+    .not()
+    .isEmpty()
+    .withMessage("Vui lòng nhập nhập tháng năm nhập!"),
+  body("academic_level").not().isEmpty().withMessage("Vui lòng nhập trình độ!"),
+  body("position").not().isEmpty().withMessage("Vui lòng nhập chức vụ!"),
+  body("location").custom(async (value, { req }) => {
+    const locationReq = await Location.findById(value);
+    if (!locationReq) throw new Error("Not found location");
+  }),
+  body("birthday")
+    .not()
+    .isEmpty()
+    .withMessage("Vui lòng nhập ngày tháng năm sinh!"),
+  body("join_army")
+    .not()
+    .isEmpty()
+    .withMessage("Vui lòng nhập tháng năm nhập ngũ!"),
+  body("gender").not().isEmpty().withMessage("Vui lòng nhập giới tính!"),
+  body("hometown").not().isEmpty().withMessage("Vui lòng nhập quê quán!"),
+  body("address").not().isEmpty().withMessage("Vui lòng nhập địa chỉ!"),
+  body("info").not().isEmpty().withMessage("Vui lòng nhập thông tin liên hệ!"),
+];
+
+//post add mititary
+exports.postAddMilitary = async (req, res, next) => {
+  const error = validationResult(req);
+  if (!error.isEmpty()) {
+    return res.status(422).json({
+      errorMessage: error.array()[0].msg,
+      oldInput: req.body,
+      validationErrors: error.array(),
+    });
+  }
+  const {
+    name,
+    id_number,
+    object,
+    rank,
+    rank_time,
+    academic_level,
+    position,
+    location,
+    birthday,
+    join_army,
+    gender,
+    hometown,
+    address,
+    info,
+  } = req.body;
+  try {
+    const name_location = await Location.findById(location);
+
+    const military = new Military({
+      name,
+      id_number,
+      object,
+      rank,
+      rank_time: new Date(rank_time),
+      academic_level,
+      position,
+      location: { name_location: name_location.name, id: location },
+      birthday: new Date(birthday),
+      join_army: new Date(join_army),
+      gender,
+      hometown,
+      address,
+      info,
+    });
+
+    const result = await military.save();
+    res
+      .status(200)
+      .json({ message: "Thêm quân nhân thành công!", id_military: result._id });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+//detete military
+exports.deleteMilitary = async (req, res, next) => {
+  try {
+    const idMilitary = req.params.id;
+    await Military.findByIdAndDelete(idMilitary);
+    res.status(200).json({ message: "Xóa thành công!" });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+//edit military
+exports.editMilitary = async (req, res, next) => {
+  const error = validationResult(req);
+  if (!error.isEmpty()) {
+    return res.status(422).json({
+      errorMessage: error.array()[0].msg,
+      oldInput: req.body,
+      validationErrors: error.array(),
+    });
+  }
+  const {
+    id_number,
+    name,
+    gender,
+    object,
+    phone,
+    info,
+    rank,
+    rank_time,
+    position,
+    location,
+    birthday,
+    join_army,
+    hometown,
+    address,
+    academic_level,
+    party,
+    union_member,
+    pro_expertise,
+    bonus,
+    discripline,
+    biological_parents,
+    maternal_family,
+  } = req.body;
+  const dataMilitary = {
+    id_number,
+    name,
+    gender,
+    object,
+    phone,
+    info,
+    rank,
+    rank_time: new Date(rank_time),
+    position,
+    location,
+    birthday: new Date(birthday),
+    join_army: new Date(join_army),
+    hometown,
+    address,
+    academic_level,
+    party,
+    union_member,
+    pro_expertise,
+    bonus,
+    discripline,
+  };
+  try {
+    const name_location = await Location.findById(location);
+    const dataMilitary = {
+      id_number,
+      name,
+      gender,
+      object,
+      phone,
+      info,
+      rank,
+      rank_time: new Date(rank_time),
+      position,
+      location: { name_location: name_location.name, id: location },
+      birthday: new Date(birthday),
+      join_army: new Date(join_army),
+      hometown,
+      address,
+      academic_level,
+      party,
+      union_member,
+      pro_expertise,
+      bonus,
+      discripline,
+    };
+    if (biological_parents) {
+      const family = new Family(biological_parents);
+      const family_parents = await family.save();
+      dataMilitary.biological_parents = family_parents._id;
+    }
+    if (maternal_family) {
+      const family = new Family(maternal_family);
+      const family_maternal = await family.save();
+      dataMilitary.maternal_family = family_maternal._id;
+    }
+    const military = await Military.findByIdAndUpdate(
+      req.params.id,
+      dataMilitary,
+      { new: true }
+    );
+
+    res
+      .status(200)
+      .json({ message: "Cập nhật thành công!", result: military._id });
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;

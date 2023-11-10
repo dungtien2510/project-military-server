@@ -1,12 +1,13 @@
 const express = require("express");
 const { check, body } = require("express-validator");
 
-const adminController = require("../controller/admin");
+const locationController = require("../controller/location");
 const authController = require("../controller/auth");
 const User = require("../models/user");
 const router = express.Router();
 
 const Military = require("../models/military");
+const militaryController = require("../controller/military");
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////
 ///////////////
@@ -125,8 +126,8 @@ router.put(
         }
       }),
   ],
-  adminController.militaryValid,
-  adminController.editMilitary
+  militaryController.militaryValid,
+  militaryController.editMilitary
 );
 
 //router add military
@@ -146,12 +147,12 @@ router.post(
         }
       }),
   ],
-  adminController.militaryValid,
-  adminController.postAddMilitary
+  militaryController.militaryValid,
+  militaryController.postAddMilitary
 );
 
 //router remove military
-router.delete("/military/delete/:id", adminController.deleteMilitary);
+router.delete("/military/delete/:id", militaryController.deleteMilitary);
 
 ///////////////////////////////
 //////////////
@@ -159,27 +160,27 @@ router.delete("/military/delete/:id", adminController.deleteMilitary);
 // router add location
 router.post(
   "/location/add",
-  adminController.locationValidator,
-  adminController.postAddLocation
+  locationController.locationValidator,
+  locationController.postAddLocation
 );
 
 // edit location
 router.put(
   "/location/edit/:id",
 
-  adminController.locationEditValidator,
-  adminController.postEditLocation
+  locationController.locationEditValidator,
+  locationController.postEditLocation
 );
 
 // get list of location
-router.get("/location/list", adminController.getListLocation);
+router.get("/location/list", locationController.getListLocation);
 
 //get location details
-router.get("/location/details/:id", adminController.getLocationDetails);
+router.get("/location/details/:id", locationController.getLocationDetails);
 
 //delete location vẫn dữ lại đơn vị cấp dưới
-router.delete("/location/delete/:id", adminController.deleteLocation);
+router.delete("/location/delete/:id", locationController.deleteLocation);
 
 //destroy location xóa luôn đơn vị cấp dưới
-router.delete("/location/destroy/:id", adminController.destroyLocation);
+router.delete("/location/destroy/:id", locationController.destroyLocation);
 module.exports = router;
