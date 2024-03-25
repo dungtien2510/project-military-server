@@ -77,23 +77,44 @@ const militarySchema = new Schema({
     type: String,
   },
 
+  status: {
+    // trạng thái (phép, công tác, viện,...)
+    type: String,
+    required: true,
+  },
+  reason: { type: String }, //lý do
+
   bonus: [
+    // khen thưởng
     {
-      type_bonus: { type: String, required: true },
+      type_bonus: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: "Reward",
+      },
       date: { type: Date, required: true },
+      note: { type: String, required: true },
     },
   ],
   discipline: [
+    // kỷ luật
     {
-      type_discipline: { type: String, required: true },
+      type_discipline: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: "Reward",
+      },
       date: { type: Date, required: true },
+      note: { type: String, required: true },
     },
   ],
-  biological_parents: {
-    type: Schema.Types.ObjectId,
-  },
-  maternal_family: {
-    type: Schema.Types.ObjectId,
+
+  family: {
+    // gia đình
+    wife: { type: Schema.Type.ObjectId, ref: "Relative" },
+    children: [{ type: Schema.Type.ObjectId, ref: "Relative" }],
+    father: { type: Schema.Type.ObjectId, ref: "Relative" },
+    mother: { type: Schema.Type.ObjectId, ref: "Relative" },
   },
 });
 

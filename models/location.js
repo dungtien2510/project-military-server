@@ -11,14 +11,13 @@ const locationSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Location",
   },
-
   master: {
     id: {
       type: Schema.Types.ObjectId,
-
       ref: "Military",
+      required: true,
     },
-    fullName: { type: String },
+    fullName: { type: String, required: true },
   },
 });
 

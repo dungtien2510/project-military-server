@@ -18,7 +18,7 @@ router.post(
       .isEmpty()
 
       // Nếu trường "email" không hợp lệ, thông báo lỗi "Please enter a valid email." sẽ được trả về.
-      .withMessage("Vui lòng không để trống tên tài khoản")
+      .withMessage("Invalid name user")
 
       //Middleware custom này cho phép bạn thực hiện kiểm tra tùy chỉnh cho trường "email".
       .custom(async (value, { req }) => {
@@ -27,7 +27,7 @@ router.post(
 
         if (!userDoc) {
           //Nếu không tìm thấy email tương ứng trong cơ sở dữ liệu, chúng ta sẽ sử dụng throw new Error("Invalid email") để ném một lỗi và middleware check sẽ hiểu rằng kiểm tra không thành công và yêu cầu sẽ không được xử lý tiếp theo theo luồng chính, mà thay vào đó sẽ chuyển tới middleware xử lý lỗi.
-          throw new Error("Invalid");
+          throw new Error("Invalid name user");
         }
       }),
 
@@ -46,7 +46,7 @@ router.post(
           const doMatch = await bcrypt.compare(value, userDoc.password);
           if (!doMatch) {
             // Nếu mật khẩu không khớp, chúng ta sẽ sử dụng throw new Error("Invalid Password") để ném một lỗi và middleware body sẽ hiểu rằng kiểm tra không thành công và yêu cầu sẽ không được xử lý tiếp theo theo luồng chính, mà thay vào đó sẽ chuyển tới middleware xử lý lỗi.
-            throw new Error("Invalid");
+            throw new Error("Invalid password");
           }
         }
       }),

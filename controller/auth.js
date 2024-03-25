@@ -34,6 +34,7 @@ exports.postLogin = (req, res, next) => {
         name_user: name_user,
         password: password,
       },
+      status: 422,
       validationErrors: errors.array(),
     });
   }
@@ -50,7 +51,7 @@ exports.postLogin = (req, res, next) => {
           //secretOrPrivateKey: Đây là chuỗi bí mật (secret key) được sử dụng để mã hóa dữ liệu trong token. Để tạo token, chúng ta sử dụng secret key này. Đảm bảo giữ secret key này bí mật và không chia sẻ công khai.
           //options: Đây là một đối tượng tùy chọn cho token. Trong ví dụ trên, chúng ta sử dụng thuộc tính expiresIn để chỉ định thời gian sống của token là 1 giờ (1h). Sau khi thời gian sống này kết thúc, token sẽ hết hiệu lực.
           //callback(err, token): Đây là hàm callback sẽ được gọi sau khi token được tạo. Nếu có lỗi trong quá trình tạo token, biến err sẽ chứa thông tin lỗi. Nếu token được tạo thành công, biến token sẽ chứa chuỗi JWT đã tạo.
-          const token = jwt.sign({ user }, secretKey, { expiresIn: "1h" });
+          const token = jwt.sign({ user }, secretKey, { expiresIn: "2h" });
 
           // // Nếu mật khẩu khớp, đánh dấu người dùng đã đăng nhập và lưu thông tin người dùng vào session
           // req.session.isLoggedIn = true;
@@ -64,8 +65,6 @@ exports.postLogin = (req, res, next) => {
             successMessage: "success",
             token: token,
             fullName: user.fullName,
-            phone: user.phone,
-            name_user: user.name_user,
           });
           // });
         }
@@ -124,7 +123,6 @@ exports.postSignup = (req, res, next) => {
         fullName: fullName,
         position: position,
         role: "client",
-
       });
 
       // Lưu thông tin người dùng vào cơ sở dữ liệu
