@@ -58,16 +58,89 @@ exports.getInforGeneral = async (req, res, next) => {
       status: { $ne: "x" },
     }); // $ne là toán tử truy vấn không phải là x (not equal)
 
-    //quân số các đơn vị
-    const locationMax = await Location.findOne().sort({ level: -1 });
+    /////////////
+    //////////quân số các đơn vị
+    // const locationMax = await Location.findOne().sort({ level: -1 });
 
-    const locationLower = await Location.find({ level: locationMax.level - 1 });
+    ///////////các đơn vị dưới 1 cấp
+    const locationLower = await Location.find({ superior: req.user.location });
+
+    // hàm tìm các đơn vị cấp dưới của locationLower
+    const listLocations = async (idLoc) => {
+      try {
+        arrayLocation = await Location.aggregate([
+          {
+            $match: {
+              superior: new mongoose.Types.ObjectId(req.user.location), /////////
+            },
+          },
+          {
+            $graphLookup: {
+              //$graphLookup: Đây là giai đoạn thứ hai của pipeline và nó thực hiện một tìm kiếm đệ quy trong biểu đồ.
+              from: "locations",
+              startWith: "$_id",
+              connectFromField: "_id",
+              connectToField: "superior",
+              as: "locationsHierarchy",
+              // restrictSearchWithMatch: {}, // Có thể thêm điều kiện tìm kiếm nếu cần
+              // depthField: "depth", // có thể lấy thông tin độ sâu từ trường depth
+              // maxDepth: 3, // Đặt giá trị tối đa cho độ sâu
+            },
+          },
+          {
+            $project: {
+              "locationsHierarchy._id": 1, // chỉ lấy phần _id của location
+              // "locationsHierarchy.name": 1, // chỉ lấy phần name của location
+              // "locationsHierarchy.depth": 1, // thông tin độ sâu
+            },
+          },
+        ]);
+        return arrayLocation;
+      } catch (err) {
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
+      }
+    };
+
+    //tất cả các đơn vị cấp dưới
+    const resultLocation = locationLower.map(async (v, i) => {
+      const listLocaLower = await listLocations(v._id);
+
+      //tính số lượng quân nhân của đơn vị cấp dưới
+      const totalMilitaryLocaLower = await Military.countDocuments({
+        location: { $in: listLocaLower },
+      });
+
+      //tổng số quân nhân có mặt
+      const totalMilitaryPre = await Military.countDocuments({
+        location: { $in: listLocaLower },
+        status: "x",
+      });
+
+      //tổng số quân nhân vắng mặt
+      const totalMilitaryAbsent = await Military.countDocuments({
+        location: { $in: listLocaLower },
+        status: { $ne: "x" },
+      });
+
+      return { ...v, listLocaLower, totalMilitaryPre, totalMilitaryAbsent };
+    });
+
+    res.status(200).json({
+      message: "success",
+      totalMilitarys,
+      presentMilitarys,
+      absentMilitarys,
+      resultLocation,
+    });
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;
     return next(error);
   }
 };
+
 //get thông tin chung gồm SQ, QNCN, CS (TỔNG QUÂN SỐ)
 exports.getInforTotal = async (req, res, next) => {
   try {
@@ -130,6 +203,7 @@ exports.getMilitarys = async (req, res, next) => {
         },
         {
           $graphLookup: {
+            //$graphLookup: Đây là giai đoạn thứ hai của pipeline và nó thực hiện một tìm kiếm đệ quy trong biểu đồ.
             from: "locations",
             startWith: "$_id",
             connectFromField: "_id",

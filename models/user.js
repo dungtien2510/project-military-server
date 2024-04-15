@@ -18,6 +18,7 @@ const userSchema = new Schema({
   },
   role: { type: String, required: true },
   position: { type: String, required: true },
+  location: { type: Schema.Types.ObjectId, ref: "Locations" },
 });
 
 //addToCart
