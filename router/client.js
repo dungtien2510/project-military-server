@@ -4,7 +4,7 @@ const militaryController = require("../controller/military");
 
 router.get("/military/list", militaryController.getMilitarys);
 
-router.get("/military/general", militaryController.getInforGeneral);
+router.get("/military/total", militaryController.getInforTotal);
 
 router.get("/military/detail/:id", militaryController.getIdMilitary);
 

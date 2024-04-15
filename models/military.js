@@ -40,12 +40,12 @@ const militarySchema = new Schema({
     required: true,
   },
   location: {
-    name_location: { type: String, required: true },
-    id: {
-      type: Schema.Types.ObjectId,
-      ref: "Location",
-      require: true,
-    },
+    // name_location: { type: String, required: true },
+    // id: {
+    type: Schema.Types.ObjectId,
+    ref: "Location",
+    require: true,
+    // },
   },
   birthday: {
     type: Date,
@@ -84,7 +84,7 @@ const militarySchema = new Schema({
   },
   reason: { type: String }, //lý do
 
-  bonus: [
+  reward: [
     // khen thưởng
     {
       type_bonus: {
@@ -115,6 +115,8 @@ const militarySchema = new Schema({
     children: [{ type: Schema.Type.ObjectId, ref: "Relative" }],
     father: { type: Schema.Type.ObjectId, ref: "Relative" },
     mother: { type: Schema.Type.ObjectId, ref: "Relative" },
+    father_wife: { type: Schema.Type.ObjectId, ref: "Relative" },
+    mother_wife: { type: Schema.Type.ObjectId, ref: "Relative" },
   },
 });
 

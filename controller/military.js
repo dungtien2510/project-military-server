@@ -40,9 +40,36 @@ exports.getIdMilitary = async (req, res, next) => {
     return next(error);
   }
 };
+///////////////////////////////////////////////
+/////////////////////////////////
+/////////
+///GET PHẦN CHUNG
 
-//get thông tin chung gồm SQ, QNCN, CS
 exports.getInforGeneral = async (req, res, next) => {
+  try {
+    // tổng quân số
+    const totalMilitarys = await Military.countDocuments();
+
+    // quân số có mặt
+    const presentMilitarys = await Military.countDocuments({ status: "x" });
+
+    // quân sô vắng mặt
+    const absentMilitarys = await Military.countDocuments({
+      status: { $ne: "x" },
+    }); // $ne là toán tử truy vấn không phải là x (not equal)
+
+    //quân số các đơn vị
+    const locationMax = await Location.findOne().sort({ level: -1 });
+
+    const locationLower = await Location.find({ level: locationMax.level - 1 });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+//get thông tin chung gồm SQ, QNCN, CS (TỔNG QUÂN SỐ)
+exports.getInforTotal = async (req, res, next) => {
   try {
     //tổng số quân nhân
     const totalMilitarys = await Military.countDocuments();
