@@ -10,9 +10,10 @@ router.get("/military/location/:id", militaryController.getNumberMilLoc);
 // get đối tượng của quân nhân
 router.get("/military/object/:id", militaryController.getObjectMilitarys);
 
+// lọc military
 router.get("/military/list", militaryController.getMilitarys);
 
-router.get("/military/total", militaryController.getInforTotal);
+// router.get("/military/total", militaryController.getInforTotal);
 
 router.get("/military/detail/:id", militaryController.getIdMilitary);
 

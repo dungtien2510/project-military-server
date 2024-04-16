@@ -355,62 +355,6 @@ exports.getObjectMilitarys = async (req, res, next) => {
   }
 };
 
-//get thông tin chung gồm SQ, QNCN, CS (TỔNG QUÂN SỐ)
-exports.getInforTotal = async (req, res, next) => {
-  try {
-    //tổng số quân nhân
-    const totalMilitarys = await Military.countDocuments();
-
-    //sỹ quan
-    const officer = await Military.countDocuments({ object: "officer" });
-
-    //quân nhân chuyên nghiệp
-    const pro_serviceman = await Military.countDocuments({
-      object: "pro_serviceman",
-    });
-
-    //chiến sĩ
-    const soldier = await Military.countDocuments({ object: "soldier" });
-
-    //công nhân vcqp
-    const worker = await Military.countDocuments({ object: "worker" });
-
-    //quân cố có mặt
-    const militaryPresent = await Military.countDocuments({ status: "x" });
-
-    // quân số vắng
-    const militaryAbsent = await Military.countDocuments({
-      status: { $ne: "x" },
-    });
-
-    // //quân số phép
-    // const militaryP = await Military.countDocuments({ object: "p" });
-
-    // //quân số công tác
-    // const militaryCT = await Military.countDocuments({ object: "ct" });
-
-    // //quân số viện
-    // const militaryV = await Military.countDocuments({ object: "v" });
-
-    // //quân số bệnh xá
-    // const militaryBX = await Military.countDocuments({ object: "bx"});
-
-    res.status(200).json({
-      message: "Success",
-      result: {
-        officer: officer,
-        pro_serviceman: pro_serviceman,
-        soldier: soldier,
-        totalMilitarys,
-      },
-    });
-  } catch (err) {
-    const error = new Error(err);
-    error.httpStatusCode = 500;
-    return next(error);
-  }
-};
-
 //get quân nhân theo điều kiện lọc
 exports.getMilitarys = async (req, res, next) => {
   try {
@@ -420,7 +364,9 @@ exports.getMilitarys = async (req, res, next) => {
     const name = req.query.name;
     const rank = req.query.rank;
     const position = req.query.position;
-    const location = req.query.location;
+    const location = req.query.location
+      ? req.query.location
+      : req.user.location;
     const birthday = req.query.birthday;
     const join_army = req.query.join_army;
     const object = req.query.object;
@@ -430,41 +376,10 @@ exports.getMilitarys = async (req, res, next) => {
     if (birthday) query.birthday = birthday;
     if (position) query.position = position;
     if (object) query.object = object;
-    let arrayLocation;
-    if (location) {
-      arrayLocation = await Location.aggregate([
-        {
-          $match: {
-            _id: new mongoose.Types.ObjectId(location),
-          },
-        },
-        {
-          $graphLookup: {
-            //$graphLookup: Đây là giai đoạn thứ hai của pipeline và nó thực hiện một tìm kiếm đệ quy trong biểu đồ.
-            from: "locations",
-            startWith: "$_id",
-            connectFromField: "_id",
-            connectToField: "superior",
-            as: "locationsHierarchy",
-            // restrictSearchWithMatch: {}, // Có thể thêm điều kiện tìm kiếm nếu cần
-            // depthField: "depth", // có thể lấy thông tin độ sâu từ trường depth
-            // maxDepth: 3, // Đặt giá trị tối đa cho độ sâu
-          },
-        },
-        {
-          $project: {
-            "locationsHierarchy._id": 1, // chỉ lấy phần _id của location
-            // "locationsHierarchy.name": 1, // chỉ lấy phần name của location
-            // "locationsHierarchy.depth": 1, // thông tin độ sâu
-          },
-        },
-      ]);
-      const locations = arrayLocation[0].locationsHierarchy.map(
-        (item) => item._id
-      );
-      locations.push(arrayLocation[0]._id);
-      query["location.id"] = { $in: locations };
-    }
+    const listLocations = await getLocations(location);
+
+    query.location = { $in: listLocations };
+
     const queryfunction = (name) => {
       const arr = Object.entries(query).map(([key, value]) => ({
         [key]: value,
