@@ -47,24 +47,6 @@ exports.getIdMilitary = async (req, res, next) => {
 
 exports.getInforGeneral = async (req, res, next) => {
   try {
-    // tổng quân số
-    const totalMilitarys = await Military.countDocuments();
-
-    // quân số có mặt
-    const presentMilitarys = await Military.countDocuments({ status: "x" });
-
-    // quân sô vắng mặt
-    const absentMilitarys = await Military.countDocuments({
-      status: { $ne: "x" },
-    }); // $ne là toán tử truy vấn không phải là x (not equal)
-
-    /////////////
-    //////////quân số các đơn vị
-    // const locationMax = await Location.findOne().sort({ level: -1 });
-
-    ///////////các đơn vị dưới 1 cấp
-    const locationLower = await Location.find({ superior: req.user.location });
-
     // hàm tìm các đơn vị cấp dưới của locationLower
     const listLocations = async (idLoc) => {
       try {
@@ -107,6 +89,62 @@ exports.getInforGeneral = async (req, res, next) => {
         return next(error);
       }
     };
+
+    //id location của user đã đăng nhập
+    const userLocation = req.user.location;
+
+    //array location cấp mình và cấp dưới
+    const arrayLocationLower = await listLocations(userLocation);
+
+    //tổng quân số
+    const totalMilitarys = await Military.countDocuments({
+      location: { $in: arrayLocationLower },
+    });
+
+    //quân số có mặt
+    const presentMilitarys = await Military.countDocuments({
+      location: { $in: arrayLocationLower },
+      status: "x",
+    });
+
+    //quân số phép
+    const militarysP = await Military.countDocuments({
+      location: { $in: arrayLocationLower },
+      status: "p",
+    });
+
+    //quân số công tác
+    const militarysCT = await Military.countDocuments({
+      location: { $in: arrayLocationLower },
+      status: "ct",
+    });
+
+    //quân số vieenj
+    const militarysV = await Military.countDocuments({
+      location: { $in: arrayLocationLower },
+      status: "v",
+    });
+
+    const militarysBX = await Military.countDocuments({
+      location: { $in: arrayLocationLower },
+      status: "bx",
+    });
+
+    const militarysK = await Military.countDocuments({
+      location: { $in: arrayLocationLower },
+      status: "k",
+    });
+
+    const militarysN = await Military.countDocuments({
+      location: { $in: arrayLocationLower },
+      status: "n",
+    });
+
+    /////////////
+    //////////quân số các đơn vị
+
+    ///////////các đơn vị dưới 1 cấp
+    const locationLower = await Location.find({ superior: userLocation });
 
     //tất cả các đơn vị cấp dưới
     const resultLocation = await Promise.all(
@@ -164,7 +202,14 @@ exports.getInforGeneral = async (req, res, next) => {
       message: "success",
       totalMilitarys,
       presentMilitarys,
-      absentMilitarys,
+      absentMilitarys: {
+        militarysBX,
+        militarysP,
+        militarysV,
+        militarysCT,
+        militarysK,
+        militarysN,
+      },
       resultLocation,
     });
   } catch (err) {
@@ -190,6 +235,29 @@ exports.getInforTotal = async (req, res, next) => {
 
     //chiến sĩ
     const soldier = await Military.countDocuments({ object: "soldier" });
+
+    //công nhân vcqp
+    const worker = await Military.countDocuments({ object: "worker" });
+
+    //quân cố có mặt
+    const militaryPresent = await Military.countDocuments({ status: "x" });
+
+    // quân số vắng
+    const militaryAbsent = await Military.countDocuments({
+      status: { $ne: "x" },
+    });
+
+    // //quân số phép
+    // const militaryP = await Military.countDocuments({ object: "p" });
+
+    // //quân số công tác
+    // const militaryCT = await Military.countDocuments({ object: "ct" });
+
+    // //quân số viện
+    // const militaryV = await Military.countDocuments({ object: "v" });
+
+    // //quân số bệnh xá
+    // const militaryBX = await Military.countDocuments({ object: "bx"});
 
     res.status(200).json({
       message: "Success",
