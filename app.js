@@ -20,7 +20,7 @@ const clientRouter = require("./router/client");
 const adminRouter = require("./router/admin");
 
 const MONGODB_URI =
-  "mongodb+srv://dungtien2510:dung25101997@cluster0.ypzklxr.mongodb.net/army?retryWrites=true&w=majority";
+  "mongodb+srv://dungtien2510:dung25101997@cluster0.3n1yvil.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 //tạo máy chủ và xuất nó để sử dụng websocket
 // const server = http.createServer(app);

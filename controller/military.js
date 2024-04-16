@@ -68,10 +68,10 @@ exports.getInforGeneral = async (req, res, next) => {
     // hàm tìm các đơn vị cấp dưới của locationLower
     const listLocations = async (idLoc) => {
       try {
-        arrayLocation = await Location.aggregate([
+        const arrayLocation = await Location.aggregate([
           {
             $match: {
-              superior: new mongoose.Types.ObjectId(req.user.location), /////////
+              _id: new mongoose.Types.ObjectId(idLoc), /////////
             },
           },
           {
@@ -82,6 +82,7 @@ exports.getInforGeneral = async (req, res, next) => {
               connectFromField: "_id",
               connectToField: "superior",
               as: "locationsHierarchy",
+              restrictSearchWithMatch: { superior: { $exists: true } },
               // restrictSearchWithMatch: {}, // Có thể thêm điều kiện tìm kiếm nếu cần
               // depthField: "depth", // có thể lấy thông tin độ sâu từ trường depth
               // maxDepth: 3, // Đặt giá trị tối đa cho độ sâu
@@ -95,7 +96,11 @@ exports.getInforGeneral = async (req, res, next) => {
             },
           },
         ]);
-        return arrayLocation;
+        const result = [arrayLocation[0]._id];
+        arrayLocation[0].locationsHierarchy.forEach((v, i) => {
+          result.push(v._id);
+        });
+        return result;
       } catch (err) {
         const error = new Error(err);
         error.httpStatusCode = 500;
@@ -104,28 +109,56 @@ exports.getInforGeneral = async (req, res, next) => {
     };
 
     //tất cả các đơn vị cấp dưới
-    const resultLocation = locationLower.map(async (v, i) => {
-      const listLocaLower = await listLocations(v._id);
+    const resultLocation = await Promise.all(
+      locationLower.map(async (v, i) => {
+        try {
+          const listLocaLower = await listLocations(v._id);
 
-      //tính số lượng quân nhân của đơn vị cấp dưới
-      const totalMilitaryLocaLower = await Military.countDocuments({
-        location: { $in: listLocaLower },
-      });
+          // const [totalMilitaryLocaLower, totalMilitaryPre, totalMilitaryAbsent] =
+          //   await Promise.all([
+          //     Military.countDocuments({ location: { $in: listLocaLower } }),
+          //     Military.countDocuments({
+          //       location: { $in: listLocaLower },
+          //       status: "x",
+          //     }),
+          //     Military.countDocuments({
+          //       location: { $in: listLocaLower },
+          //       status: { $ne: "x" },
+          //     }),
+          //   ]);
+          //tính số lượng quân nhân của đơn vị cấp dưới
+          const totalMilitaryLocaLower = await Military.countDocuments({
+            location: { $in: listLocaLower },
+          });
 
-      //tổng số quân nhân có mặt
-      const totalMilitaryPre = await Military.countDocuments({
-        location: { $in: listLocaLower },
-        status: "x",
-      });
+          //tổng số quân nhân có mặt
+          const totalMilitaryPre = await Military.countDocuments({
+            location: { $in: listLocaLower },
+            status: "x",
+          });
 
-      //tổng số quân nhân vắng mặt
-      const totalMilitaryAbsent = await Military.countDocuments({
-        location: { $in: listLocaLower },
-        status: { $ne: "x" },
-      });
+          //tổng số quân nhân vắng mặt
+          const totalMilitaryAbsent = await Military.countDocuments({
+            location: { $in: listLocaLower },
+            status: { $ne: "x" },
+          });
 
-      return { ...v, listLocaLower, totalMilitaryPre, totalMilitaryAbsent };
-    });
+          return {
+            master: v.master,
+            _id: v._id,
+            superior: v.superior,
+            name: v.name,
+            level: v.level,
+            listLocaLower,
+            totalMilitaryLocaLower,
+            totalMilitaryPre,
+            totalMilitaryAbsent,
+          };
+        } catch (err) {
+          throw new Error(err);
+        }
+      })
+    );
 
     res.status(200).json({
       message: "success",

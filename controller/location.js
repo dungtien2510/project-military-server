@@ -29,7 +29,7 @@ exports.locationValidator = [
       if (req.body.superior) {
         const locationSuperior = await Location.findById(req.body.superior);
         if (!locationSuperior) throw new Error("Invalid superior not found");
-        if (locationSuperior.level >= value)
+        if (locationSuperior.level <= value)
           throw new Error("invalid superior level");
       }
     }),
@@ -59,12 +59,7 @@ exports.postAddLocation = async (req, res, next) => {
   if (req.body.superior) {
     locationData.superior = req.body.superior;
   }
-  if (req.body.id_master) {
-    locationData.master = {
-      id: req.body.id_master,
-      fullName: req.body.fullName,
-    };
-  }
+
   try {
     // if (req.body.lower_level) {
     //   const lower = req.body.lower_level.split(";");
@@ -72,9 +67,17 @@ exports.postAddLocation = async (req, res, next) => {
     //   if (locationLower.some((item) => item.level <= req.body.level))
     //     throw new Error("invalid level");
     // }
+    const master = await Military.findById(req.body.id_master);
+
+    locationData.master = {
+      id: req.body.id_master,
+      fullName: master.name,
+    };
 
     const location = new Location(locationData);
-    await location.save();
+    const idLocation = await location.save();
+    await Military.findByIdAndUpdate(master._id, { location: idLocation._id });
+
     return res
       .status(200)
       .json({ message: "Thêm thành công!", location: location });

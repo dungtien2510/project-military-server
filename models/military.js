@@ -111,12 +111,12 @@ const militarySchema = new Schema({
 
   family: {
     // gia đình
-    wife: { type: Schema.Type.ObjectId, ref: "Relative" },
-    children: [{ type: Schema.Type.ObjectId, ref: "Relative" }],
-    father: { type: Schema.Type.ObjectId, ref: "Relative" },
-    mother: { type: Schema.Type.ObjectId, ref: "Relative" },
-    father_wife: { type: Schema.Type.ObjectId, ref: "Relative" },
-    mother_wife: { type: Schema.Type.ObjectId, ref: "Relative" },
+    wife: { type: Schema.Types.ObjectId, ref: "Relative" },
+    children: [{ type: Schema.Types.ObjectId, ref: "Relative" }],
+    father: { type: Schema.Types.ObjectId, ref: "Relative" },
+    mother: { type: Schema.Types.ObjectId, ref: "Relative" },
+    father_wife: { type: Schema.Types.ObjectId, ref: "Relative" },
+    mother_wife: { type: Schema.Types.ObjectId, ref: "Relative" },
   },
 });
 
