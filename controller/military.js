@@ -570,10 +570,12 @@ exports.editMilitary = async (req, res, next) => {
     party,
     union_member,
     pro_expertise,
-    bonus,
+    status,
+    reason,
+    marital_status,
+    reward,
     discripline,
-    biological_parents,
-    maternal_family,
+    family,
   } = req.body;
   const dataMilitary = {
     id_number,
@@ -594,43 +596,48 @@ exports.editMilitary = async (req, res, next) => {
     party,
     union_member,
     pro_expertise,
-    bonus,
+    status,
+    reason,
+    marital_status,
+
+    reward,
     discripline,
+    family,
   };
   try {
     const name_location = await Location.findById(location);
-    const dataMilitary = {
-      id_number,
-      name,
-      gender,
-      object,
-      phone,
-      info,
-      rank,
-      rank_time: new Date(rank_time),
-      position,
-      location: { name_location: name_location.name, id: location },
-      birthday: new Date(birthday),
-      join_army: new Date(join_army),
-      hometown,
-      address,
-      academic_level,
-      party,
-      union_member,
-      pro_expertise,
-      bonus,
-      discripline,
-    };
-    if (biological_parents) {
-      const family = new Family(biological_parents);
-      const family_parents = await family.save();
-      dataMilitary.biological_parents = family_parents._id;
-    }
-    if (maternal_family) {
-      const family = new Family(maternal_family);
-      const family_maternal = await family.save();
-      dataMilitary.maternal_family = family_maternal._id;
-    }
+    // const dataMilitary = {
+    //   id_number,
+    //   name,
+    //   gender,
+    //   object,
+    //   phone,
+    //   info,
+    //   rank,
+    //   rank_time: new Date(rank_time),
+    //   position,
+    //   location: { name_location: name_location.name, id: location },
+    //   birthday: new Date(birthday),
+    //   join_army: new Date(join_army),
+    //   hometown,
+    //   address,
+    //   academic_level,
+    //   party,
+    //   union_member,
+    //   pro_expertise,
+    //   bonus,
+    //   discripline,
+    // };
+    // if (biological_parents) {
+    //   const family = new Family(biological_parents);
+    //   const family_parents = await family.save();
+    //   dataMilitary.biological_parents = family_parents._id;
+    // }
+    // if (maternal_family) {
+    //   const family = new Family(maternal_family);
+    //   const family_maternal = await family.save();
+    //   dataMilitary.maternal_family = family_maternal._id;
+    // }
     const military = await Military.findByIdAndUpdate(
       req.params.id,
       dataMilitary,

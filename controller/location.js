@@ -21,22 +21,28 @@ exports.locationValidator = [
       const locationMatch = await Location.findOne({ name: value });
       if (locationMatch) throw new Error("Tên đơn vị đã tồn tại");
     }),
-  body("level")
-    .not()
-    .isEmpty()
-    .withMessage("Invalid Level")
-    .custom(async (value, { req }) => {
-      if (req.body.superior) {
-        const locationSuperior = await Location.findById(req.body.superior);
-        if (!locationSuperior) throw new Error("Invalid superior not found");
-        if (locationSuperior.level <= value)
-          throw new Error("invalid superior level");
-      }
-    }),
+  // body("level")
+  //   .not()
+  //   .isEmpty()
+  //   .withMessage("Invalid Level")
+  //   .custom(async (value, { req }) => {
+  //     if (req.body.superior) {
+  //       const locationSuperior = await Location.findById(req.body.superior);
+  //       if (!locationSuperior) throw new Error("Invalid superior not found");
+  //       if (locationSuperior.level <= value)
+  //         throw new Error("invalid superior level");
+  //     }
+  //   }),
+  body("superior").custom(async (value) => {
+    if (value) {
+      const superior = await Location.findById(value);
+      if (!superior) throw new Error("Không tồn tại cấp trên này");
+    }
+  }),
   body("id_master").custom(async (value, { req }) => {
     if (value) {
       const idMilitary = await Military.findById(value);
-      if (!idMilitary) throw new Error("Invalid id Master");
+      if (!idMilitary) throw new Error("Quân nhân không tồn tại!");
     }
   }),
 ];
@@ -54,11 +60,8 @@ exports.postAddLocation = async (req, res, next) => {
 
   const locationData = {
     name: req.body.name,
-    level: req.body.level,
+    // level: req.body.level,
   };
-  if (req.body.superior) {
-    locationData.superior = req.body.superior;
-  }
 
   try {
     // if (req.body.lower_level) {
@@ -67,6 +70,14 @@ exports.postAddLocation = async (req, res, next) => {
     //   if (locationLower.some((item) => item.level <= req.body.level))
     //     throw new Error("invalid level");
     // }
+    if (req.body.superior) {
+      locationData.superior = req.body.superior;
+      const superior = await Location.findById(locationData.superior);
+      locationData.level = superior.level - 1;
+    } else {
+      locationData.level = req.body.level;
+    }
+
     const master = await Military.findById(req.body.id_master);
 
     locationData.master = {
@@ -76,6 +87,8 @@ exports.postAddLocation = async (req, res, next) => {
 
     const location = new Location(locationData);
     const idLocation = await location.save();
+
+    // Update location of military
     await Military.findByIdAndUpdate(master._id, { location: idLocation._id });
 
     return res
@@ -103,21 +116,15 @@ exports.locationEditValidator = [
   body("id_master").custom(async (value, { req }) => {
     if (value) {
       const idMilitary = await Military.findById(value);
-      if (!idMilitary) throw new Error("Invalid id Master");
+      if (!idMilitary) throw new Error("Quân nhân không tồn tại");
     }
   }),
-  body("level")
-    .not()
-    .isEmpty()
-    .withMessage("Invalid Level")
-    .custom(async (value, { req }) => {
-      if (req.body.superior) {
-        const locationSuperior = await Location.findById(req.body.superior);
-        if (!locationSuperior) throw new Error("Invalid superior not found");
-        if (locationSuperior.level >= value)
-          throw new Error("invalid superior level");
-      }
-    }),
+  body("superior").custom(async (value) => {
+    if (value) {
+      const superior = await Location.findById(value);
+      if (!superior) throw new Error("Không tồn tại cấp trên này");
+    }
+  }),
 ];
 
 //edit location
@@ -131,18 +138,24 @@ exports.postEditLocation = async (req, res, next) => {
     });
   const locationData = {
     name: req.body.name,
-    level: req.body.level,
   };
-  if (req.body.superior) {
-    locationData.superior = req.body.superior;
-  }
-  if (req.body.id_master && req.body.fullName) {
-    locationData.master = {
-      fullname: req.body.fullName,
-      id: req.body.id_master,
-    };
-  }
+  // if (req.body.superior) {
+  //   locationData.superior = req.body.superior;
+  // }
+  // if (req.body.id_master && req.body.fullName) {
+  //   locationData.master = {
+  //     fullname: req.body.fullName,
+  //     id: req.body.id_master,
+  //   };
+  // }
   try {
+    if (req.body.superior) {
+      locationData.superior = req.body.superior;
+      const superior = await Location.findById(locationData.superior);
+      locationData.level = superior.level - 1;
+    } else {
+      locationData.level = req.body.level;
+    }
     const location = await Location.findByIdAndUpdate(
       req.params.id,
       locationData,
