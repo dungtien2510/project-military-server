@@ -88,12 +88,15 @@ const getLocations = async (idLoc) => {
   }
 };
 
+//////////////////////////////
+// get thông tin tổng quan
 exports.getInforGeneral = async (req, res, next) => {
   try {
     //id location của user đã đăng nhập
     const userLocation = req.user.location;
 
     //array location cấp mình và cấp dưới
+
     const arrayLocationLower = await getLocations(userLocation);
 
     //tổng quân số
@@ -424,6 +427,10 @@ exports.militaryValid = [
     // .isAlphanumeric()
     .withMessage("Vui lòng nhập họ tên!"),
 
+  body("id_number")
+    .not()
+    .isEmpty()
+    .withMessage("Vui lòng nhập số hiệu quân nhân"),
   body("object").not().isEmpty().withMessage("Vui lòng nhập đối tượng!"),
   body("rank").not().isEmpty().withMessage("Vui lòng nhập nhập cấp bậc!"),
   body("rank_time")
@@ -436,7 +443,7 @@ exports.militaryValid = [
     const locationReq = await Location.findById(value);
     if (!locationReq) throw new Error("Not found location");
   }),
-  body("birthday")
+  body("birthday") //yy/mm/dd
     .not()
     .isEmpty()
     .withMessage("Vui lòng nhập ngày tháng năm sinh!"),
@@ -448,6 +455,16 @@ exports.militaryValid = [
   body("hometown").not().isEmpty().withMessage("Vui lòng nhập quê quán!"),
   body("address").not().isEmpty().withMessage("Vui lòng nhập địa chỉ!"),
   body("info").not().isEmpty().withMessage("Vui lòng nhập thông tin liên hệ!"),
+  body("status")
+    .not()
+    .isEmpty()
+    .withMessage(
+      "Vui lòng nhập trạng thái quân nhân hiện tại (phép, công tác,...)!"
+    ),
+  body("marital_status")
+    .not()
+    .isEmpty()
+    .withMessage("Vui lòng nhập trạng thái hôn nhân của quân nhân!"),
 ];
 
 //post add mititary
@@ -475,6 +492,8 @@ exports.postAddMilitary = async (req, res, next) => {
     hometown,
     address,
     info,
+    status,
+    marital_status,
   } = req.body;
   try {
     const name_location = await Location.findById(location);
@@ -487,13 +506,15 @@ exports.postAddMilitary = async (req, res, next) => {
       rank_time: new Date(rank_time),
       academic_level,
       position,
-      location: { name_location: name_location.name, id: location },
-      birthday: new Date(birthday),
+      location,
+      birthday: new Date(birthday), // yy/mm/dd
       join_army: new Date(join_army),
       gender,
       hometown,
       address,
       info,
+      status,
+      marital_status,
     });
 
     const result = await military.save();

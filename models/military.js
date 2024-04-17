@@ -67,6 +67,7 @@ const militarySchema = new Schema({
     type: Date,
   },
   union_member: {
+    // đoàn
     type: Date,
   },
   academic_level: {
@@ -74,6 +75,7 @@ const militarySchema = new Schema({
     required: true,
   },
   pro_expertise: {
+    //chuyên môn
     type: String,
   },
 
@@ -83,6 +85,8 @@ const militarySchema = new Schema({
     required: true,
   },
   reason: { type: String }, //lý do
+
+  marital_status: { type: String, required: true }, // tình trạng hôn nhân
 
   reward: [
     // khen thưởng
