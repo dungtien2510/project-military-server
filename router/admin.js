@@ -168,7 +168,7 @@ router.post(
 router.put(
   "/location/edit/:id",
 
-  locationController.locationEditValidator,
+  locationController.locationValidator,
   locationController.postEditLocation
 );
 
@@ -176,7 +176,7 @@ router.put(
 router.get("/location/list", locationController.getListLocation);
 
 //get location details
-router.get("/location/details/:id", locationController.getLocationDetails);
+// router.get("/location/details/:id", locationController.getLocationDetails);
 
 //delete location vẫn dữ lại đơn vị cấp dưới
 router.delete("/location/delete/:id", locationController.deleteLocation);
