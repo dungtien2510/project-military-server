@@ -3,6 +3,7 @@ const { check, body } = require("express-validator");
 
 const locationController = require("../controller/location");
 const authController = require("../controller/auth");
+const relativeController = require("../controller/relative");
 const User = require("../models/user");
 const router = express.Router();
 
@@ -184,3 +185,18 @@ router.delete("/location/delete/:id", locationController.deleteLocation);
 //destroy location xóa luôn đơn vị cấp dưới
 router.delete("/location/destroy/:id", locationController.destroyLocation);
 module.exports = router;
+
+////////////////////////////////////////////////////////////
+//////////////////////////////////
+///////////
+// relative
+
+// get detail relative
+router.get("/relative/detail/:id", relativeController.getIdRelative);
+
+// post relative
+router.post(
+  "/relative/add",
+  relativeController.relativeValid,
+  relativeController.postAddRelative
+);

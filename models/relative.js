@@ -7,11 +7,11 @@ const relativeSchema = new Schema({
     type: String,
     required: true,
   },
-  id_military: {
-    type: Schema.Type.ObjectId,
-    ref: "Military",
-    required: true,
-  },
+  // id_military: {
+  //   type: Schema.Type.ObjectId,
+  //   ref: "Military",
+  //   required: true,
+  // },
   birthday: {
     type: Date,
     required: true,
@@ -38,10 +38,13 @@ const relativeSchema = new Schema({
     type: String,
     required: true,
   },
-  role: {
+  note: {
     type: String,
-    required: true,
   },
+  // role: {
+  //   type: String,
+  //   required: true,
+  // },
 });
 
 module.exports = mongoose.model("Relative", relativeSchema);
