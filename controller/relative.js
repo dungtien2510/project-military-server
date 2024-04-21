@@ -124,15 +124,19 @@ exports.relativeValid = [
     .isEmpty()
     .withMessage("Vui lòng nhập vai trò đối với quân nhân!"),
   // .custom((value) => {
+  //   console.log(value);
   //   if (
-  //     value !== "children" &&
-  //     value !== "wife" &&
-  //     value !== "father" &&
-  //     value !== "mother" &&
-  //     value !== "father_wife" &&
-  //     value !== "mother_wife"
-  //   )
+  //     !(
+  //       value === "children" ||
+  //       value === "wife" ||
+  //       value === "father" ||
+  //       value === "mother" ||
+  //       value === "father_wife" ||
+  //       value === "mother_wife"
+  //     )
+  //   ) {
   //     throw new Error("Lỗi vai trò của quân nhân!");
+  //   }
   // }),
 ];
 
@@ -155,10 +159,11 @@ exports.postAddRelative = async (req, res, next) => {
     info,
     job,
     id_military,
-    role,
+
     note,
     phone,
   } = req.body;
+  const role = req.body.role.trim();
   try {
     const relative = new Relative({
       name,
@@ -178,14 +183,19 @@ exports.postAddRelative = async (req, res, next) => {
         family: { $push: { children: result._id } },
       });
     } else {
+      const military = await Military.findById(id_military);
+      if (military.family[role]) {
+        await Relative.findByIdAndDelete(military.family[role]);
+      }
       await Military.findByIdAndUpdate(id_military, {
         family: { [role]: result._id },
       });
     }
 
-    res
-      .status(200)
-      .json({ message: "Thêm quân nhân thành công!", id_relative: result._id });
+    res.status(200).json({
+      message: "Thêm người thân thành công!",
+      id_relative: result._id,
+    });
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;
