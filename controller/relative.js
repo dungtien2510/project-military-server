@@ -107,8 +107,29 @@ exports.relativeValid = [
     .isEmpty()
     .withMessage("Vui lòng chọn quân nhân!")
     .custom(async (value) => {
-      const military = await Military.findById(value);
-      if (!military) throw new Error("Quân nhân không tồn tại!");
+      const arrayError = await Promise.all(
+        value.map(async (v, i) => {
+          const military = await Military.findById(v.id);
+
+          if (
+            (v.role !== "children") &
+            (v.role !== "wife") &
+            (v.role !== "father") &
+            (v.role !== "mother") &
+            (v.role !== "father_wife") &
+            (v.role !== "mother_wife")
+          ) {
+            return new Error("Người thân không hợp lệ!");
+          }
+          if (!military) {
+            return new Error(`Quân nhân ${v.id} không tồn tại!`);
+          }
+        })
+      );
+      const firstError = arrayError.find((error) => error); // Tìm lỗi đầu tiên
+      if (firstError) {
+        throw firstError; // Nếu có lỗi, ném nó ra
+      }
     }),
   body("birthday") //yy/mm/dd
     .not()
@@ -119,25 +140,6 @@ exports.relativeValid = [
   body("hometown").not().isEmpty().withMessage("Vui lòng nhập quê quán!"),
   body("address").not().isEmpty().withMessage("Vui lòng nhập địa chỉ!"),
   body("job").not().isEmpty().withMessage("Vui lòng nhập Nghề nghiệp!"),
-  body("role")
-    .not()
-    .isEmpty()
-    .withMessage("Vui lòng nhập vai trò đối với quân nhân!"),
-  // .custom((value) => {
-  //   console.log(value);
-  //   if (
-  //     !(
-  //       value === "children" ||
-  //       value === "wife" ||
-  //       value === "father" ||
-  //       value === "mother" ||
-  //       value === "father_wife" ||
-  //       value === "mother_wife"
-  //     )
-  //   ) {
-  //     throw new Error("Lỗi vai trò của quân nhân!");
-  //   }
-  // }),
 ];
 
 //post add mititary
@@ -159,14 +161,14 @@ exports.postAddRelative = async (req, res, next) => {
     info,
     job,
     id_military,
-
     note,
     phone,
   } = req.body;
-  const role = req.body.role.trim();
+
   try {
     const relative = new Relative({
       name,
+      id_military,
       birthday: new Date(birthday), // yy/mm/dd
       gender,
       hometown,
@@ -178,19 +180,22 @@ exports.postAddRelative = async (req, res, next) => {
     });
 
     const result = await relative.save();
-    if (role === "children") {
-      await Military.findByIdAndUpdate(id_military, {
-        family: { $push: { children: result._id } },
-      });
-    } else {
-      const military = await Military.findById(id_military);
-      if (military.family[role]) {
-        await Relative.findByIdAndDelete(military.family[role]);
-      }
-      await Military.findByIdAndUpdate(id_military, {
-        family: { [role]: result._id },
-      });
-    }
+    await Promise.all(
+      id_military.map(async (v, i) => {
+        if (v.role === "children") {
+          await Military.findByIdAndUpdate(v.id, {
+            $push: { "family.children": result._id },
+          });
+        } else {
+          const military = await Military.findById(v.id);
+          if (military.family[v.role]) {
+            await Relative.findByIdAndDelete(military.family[v.role]);
+          }
+          const familyNew = `family.${v.role}`;
+          await Military.findByIdAndUpdate(v.id, { [familyNew]: result._id });
+        }
+      })
+    );
 
     res.status(200).json({
       message: "Thêm người thân thành công!",
@@ -204,10 +209,11 @@ exports.postAddRelative = async (req, res, next) => {
 };
 
 //detete military
-exports.deleteMilitary = async (req, res, next) => {
+exports.deleteRelative = async (req, res, next) => {
   try {
-    const idMilitary = req.params.id;
-    await Military.findByIdAndDelete(idMilitary);
+    const idRelative = req.params.id;
+    await Relative.findByIdAndDelete(idRelative);
+
     res.status(200).json({ message: "Xóa thành công!" });
   } catch (err) {
     const error = new Error(err);

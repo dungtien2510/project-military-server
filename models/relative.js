@@ -7,11 +7,16 @@ const relativeSchema = new Schema({
     type: String,
     required: true,
   },
-  // id_military: {
-  //   type: Schema.Type.ObjectId,
-  //   ref: "Military",
-  //   required: true,
-  // },
+  id_military: [
+    {
+      id: {
+        type: Schema.Types.ObjectId,
+        ref: "Military",
+        required: true,
+      },
+      role: { type: String, required: true },
+    },
+  ],
   birthday: {
     type: Date,
     required: true,
