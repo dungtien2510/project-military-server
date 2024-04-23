@@ -200,3 +200,6 @@ router.post(
   relativeController.relativeValid,
   relativeController.postAddRelative
 );
+
+// delete relative
+router.delete("/relative/delete/:id", relativeController.deleteRelative);

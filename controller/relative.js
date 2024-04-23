@@ -191,8 +191,10 @@ exports.postAddRelative = async (req, res, next) => {
           if (military.family[v.role]) {
             await Relative.findByIdAndDelete(military.family[v.role]);
           }
-          const familyNew = `family.${v.role}`;
-          await Military.findByIdAndUpdate(v.id, { [familyNew]: result._id });
+
+          await Military.findByIdAndUpdate(v.id, {
+            [`family.${v.role}`]: result._id,
+          });
         }
       })
     );
@@ -212,6 +214,22 @@ exports.postAddRelative = async (req, res, next) => {
 exports.deleteRelative = async (req, res, next) => {
   try {
     const idRelative = req.params.id;
+
+    const relative = await Relative.findById(idRelative);
+    await Promise.all(
+      relative.id_military.map(async (v, i) => {
+        if (v.role === "children") {
+          await Military.findByIdAndUpdate(v.id, {
+            $pull: { [`family.${v.role}`]: idRelative },
+          });
+        } else {
+          await Military.findByIdAndUpdate(v.id, {
+            $unset: { [`family.${v.role}`]: "" }, // xóa đi 1 trường $unset
+          });
+        }
+      })
+    );
+
     await Relative.findByIdAndDelete(idRelative);
 
     res.status(200).json({ message: "Xóa thành công!" });
