@@ -210,36 +210,6 @@ exports.postAddRelative = async (req, res, next) => {
   }
 };
 
-//detete military
-exports.deleteRelative = async (req, res, next) => {
-  try {
-    const idRelative = req.params.id;
-
-    const relative = await Relative.findById(idRelative);
-    await Promise.all(
-      relative.id_military.map(async (v, i) => {
-        if (v.role === "children") {
-          await Military.findByIdAndUpdate(v.id, {
-            $pull: { [`family.${v.role}`]: idRelative },
-          });
-        } else {
-          await Military.findByIdAndUpdate(v.id, {
-            $unset: { [`family.${v.role}`]: "" }, // xóa đi 1 trường $unset
-          });
-        }
-      })
-    );
-
-    await Relative.findByIdAndDelete(idRelative);
-
-    res.status(200).json({ message: "Xóa thành công!" });
-  } catch (err) {
-    const error = new Error(err);
-    error.httpStatusCode = 500;
-    return next(error);
-  }
-};
-
 //edit military
 exports.editMilitary = async (req, res, next) => {
   const error = validationResult(req);
@@ -251,101 +221,110 @@ exports.editMilitary = async (req, res, next) => {
     });
   }
   const {
-    id_number,
     name,
-    gender,
-    object,
-    phone,
-    info,
-    rank,
-    rank_time,
-    position,
-    location,
     birthday,
-    join_army,
-    hometown,
-    address,
-    academic_level,
-    party,
-    union_member,
-    pro_expertise,
-    status,
-    reason,
-    marital_status,
-    reward,
-    discripline,
-    family,
-  } = req.body;
-  const dataMilitary = {
-    id_number,
-    name,
     gender,
-    object,
-    phone,
-    info,
-    rank,
-    rank_time: new Date(rank_time),
-    position,
-    location,
-    birthday: new Date(birthday),
-    join_army: new Date(join_army),
     hometown,
     address,
-    academic_level,
-    party,
-    union_member,
-    pro_expertise,
-    status,
-    reason,
-    marital_status,
+    info,
+    job,
+    id_military,
+    note,
+    phone,
+  } = req.body;
 
-    reward,
-    discripline,
-    family,
-  };
   try {
-    const name_location = await Location.findById(location);
-    // const dataMilitary = {
-    //   id_number,
-    //   name,
-    //   gender,
-    //   object,
-    //   phone,
-    //   info,
-    //   rank,
-    //   rank_time: new Date(rank_time),
-    //   position,
-    //   location: { name_location: name_location.name, id: location },
-    //   birthday: new Date(birthday),
-    //   join_army: new Date(join_army),
-    //   hometown,
-    //   address,
-    //   academic_level,
-    //   party,
-    //   union_member,
-    //   pro_expertise,
-    //   bonus,
-    //   discripline,
-    // };
-    // if (biological_parents) {
-    //   const family = new Family(biological_parents);
-    //   const family_parents = await family.save();
-    //   dataMilitary.biological_parents = family_parents._id;
-    // }
-    // if (maternal_family) {
-    //   const family = new Family(maternal_family);
-    //   const family_maternal = await family.save();
-    //   dataMilitary.maternal_family = family_maternal._id;
-    // }
-    const military = await Military.findByIdAndUpdate(
-      req.params.id,
-      dataMilitary,
-      { new: true }
+    const idRelative = req.params.id;
+    const relativeEdit = {
+      name,
+      id_military,
+      birthday: new Date(birthday), // yy/mm/dd
+      gender,
+      hometown,
+      address,
+      info: info ? info : "",
+      job,
+      phone: phone ? phone : "",
+      note: note ? note : "",
+    };
+    const relativeOld = await Relative.findById(idRelative);
+    // const result = await relative.save();
+
+    await Promise.all(
+      id_military.map(async (v, i) => {
+        //tìm giá trị id_military === giá trị id_military mới của relative cũ
+        const id_militaryOld = relativeOld.id_military.find(
+          (mili) => mili.role === v.role && mili.id.toString() === v.id
+        );
+
+        // kiểm tra nếu giá trị mới đó không trùng với giá trị id_military cũ nào
+        if (!id_militaryOld) {
+          // const military = await Military.findById(v.id);
+          if (v.role === "children") {
+            // if (
+            //   !military.family.children.some(
+            //     (child) => child.toString() === idRelative
+            //   )
+            // ) {
+
+            //cập nhật người thân mới cho military
+            await Military.findByIdAndUpdate(v.id, {
+              $push: { "family.children": idRelative },
+            });
+
+            // xóa người thân cũ cho military
+            await Military.findByIdAndUpdate(id_militaryOld.id, {
+              $pull: { "family.children": idRelative },
+            });
+          }
+        } else {
+          //cập nhật người thân mới cho quân nhân
+          await Military.findByIdAndUpdate(v.id, {
+            [`family.${v.role}`]: idRelative,
+          });
+
+          //xóa người thân cũ cho military
+          await Military.findByIdAndUpdate(id_militaryOld.id, {
+            $unset: { [`family.${v.role}`]: "" },
+          });
+        }
+      })
+    );
+    const relative = await Relative.findByIdAndUpdate(idR);
+    res.status(200).json({
+      message: "Sửa người thân thành công!",
+      id_relative: result._id,
+    });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+//detete military
+exports.deleteRelative = async (req, res, next) => {
+  try {
+    const idRelative = req.params.id;
+
+    const relative = await Relative.findById(idRelative);
+    await Promise.all(
+      relative.id_military.map(async (v, i) => {
+        if (v.role === "children") {
+          await Military.findByIdAndUpdate(v.id, {
+            $pull: { "family.children": idRelative },
+          });
+        } else {
+          await Military.findByIdAndUpdate(v.id, {
+            $unset: { [`family.${v.role}`]: "" }, // xóa đi 1 trường $unset
+          });
+        }
+      })
     );
 
-    res
-      .status(200)
-      .json({ message: "Cập nhật thành công!", result: military._id });
+    await Relative.findByIdAndDelete(idRelative, relativeEdit);
+
+    res.status(200).json({ message: "Xóa thành công!" });
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;
