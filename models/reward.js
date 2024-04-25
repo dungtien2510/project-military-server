@@ -11,8 +11,8 @@ const reward_disciplinesSchema = new Schema({
     type: Number,
     required: true,
   },
-  reward: {
-    type: Boolean,
+  type: {
+    type: String,
     required: true,
   },
 });

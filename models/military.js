@@ -91,7 +91,7 @@ const militarySchema = new Schema({
   reward: [
     // khen thưởng
     {
-      type_bonus: {
+      id: {
         type: Schema.Types.ObjectId,
         required: true,
         ref: "Reward",
@@ -103,7 +103,7 @@ const militarySchema = new Schema({
   discipline: [
     // kỷ luật
     {
-      type_discipline: {
+      id: {
         type: Schema.Types.ObjectId,
         required: true,
         ref: "Reward",
