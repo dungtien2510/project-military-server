@@ -211,7 +211,7 @@ exports.postAddRelative = async (req, res, next) => {
 };
 
 //edit military
-exports.editMilitary = async (req, res, next) => {
+exports.editRelative = async (req, res, next) => {
   const error = validationResult(req);
   if (!error.isEmpty()) {
     return res.status(422).json({
@@ -248,52 +248,69 @@ exports.editMilitary = async (req, res, next) => {
       note: note ? note : "",
     };
     const relativeOld = await Relative.findById(idRelative);
-    // const result = await relative.save();
 
-    await Promise.all(
-      id_military.map(async (v, i) => {
-        //tìm giá trị id_military === giá trị id_military mới của relative cũ
-        const id_militaryOld = relativeOld.id_military.find(
-          (mili) => mili.role === v.role && mili.id.toString() === v.id
-        );
+    //hàm kiểm tra 2 array khác nhau
+    const equalsCheck = (a, b) => {
+      if (a.length !== b.length) return false;
 
-        // kiểm tra nếu giá trị mới đó không trùng với giá trị id_military cũ nào
-        if (!id_militaryOld) {
-          // const military = await Military.findById(v.id);
+      const check = a.some((value) => {
+        if (
+          !b.some(
+            (vb) =>
+              vb.id.toString() === value.id.toString() && vb.role === value.role
+          )
+        )
+          return true;
+      });
+
+      return !check;
+    };
+
+    //kiểm tra 2 array id_military của phần cũ và mới có khác nhau không
+    const arrIdMili = equalsCheck(id_military, relativeOld.id_military);
+    if (!arrIdMili) {
+      console.log("equalsCheck");
+
+      //nếu khác xóa người thân ở quân nhân cũ
+      await Promise.all(
+        relativeOld.id_military.map(async (v, i) => {
           if (v.role === "children") {
-            // if (
-            //   !military.family.children.some(
-            //     (child) => child.toString() === idRelative
-            //   )
-            // ) {
+            await Military.findByIdAndUpdate(v.id, {
+              $pull: { "family.children": idRelative },
+            });
+          } else {
+            await Military.findByIdAndUpdate(v.id, {
+              $unset: {
+                [`family.${v.role}`]: idRelative,
+              },
+            });
+          }
+        })
+      );
 
-            //cập nhật người thân mới cho military
+      //sau đó thêm người thân hiện tại vào các military mới khác
+      await Promise.all(
+        id_military.map(async (v, i) => {
+          if (v.role === "children") {
             await Military.findByIdAndUpdate(v.id, {
               $push: { "family.children": idRelative },
             });
-
-            // xóa người thân cũ cho military
-            await Military.findByIdAndUpdate(id_militaryOld.id, {
-              $pull: { "family.children": idRelative },
+            await Military.findByIdAndUpdate(v.id, {
+              [`family.${v.role}`]: idRelative,
             });
           }
-        } else {
-          //cập nhật người thân mới cho quân nhân
-          await Military.findByIdAndUpdate(v.id, {
-            [`family.${v.role}`]: idRelative,
-          });
+        })
+      );
+    }
 
-          //xóa người thân cũ cho military
-          await Military.findByIdAndUpdate(id_militaryOld.id, {
-            $unset: { [`family.${v.role}`]: "" },
-          });
-        }
-      })
+    const relative = await Relative.findByIdAndUpdate(
+      idRelative,
+      relativeEdit,
+      { new: true }
     );
-    const relative = await Relative.findByIdAndUpdate(idR);
     res.status(200).json({
       message: "Sửa người thân thành công!",
-      id_relative: result._id,
+      id_relative: relative._id,
     });
   } catch (err) {
     const error = new Error(err);

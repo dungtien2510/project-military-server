@@ -203,3 +203,10 @@ router.post(
 
 // delete relative
 router.delete("/relative/delete/:id", relativeController.deleteRelative);
+
+//edit relative
+router.put(
+  "/relative/edit/:id",
+  relativeController.relativeValid,
+  relativeController.editRelative
+);
