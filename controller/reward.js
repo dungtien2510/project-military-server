@@ -19,9 +19,16 @@ exports.validReward = [
     .not()
     .isEmpty()
     .withMessage("Vui Lòng nhập tên mức khen thưởng kỷ luật!")
-    .custom(async (value) => {
-      const reward = await Reward.findOne({ name: value });
-      if (reward) throw new Error("Tên khen thưởng kỷ luật đã tồn tại!");
+    .custom(async (value, { req }) => {
+      if (req.params.id) {
+        const reward = await Reward.findOne({ name: value });
+        const idRewardOld = await Reward.findById(req.params.id);
+        if (reward && reward._id.toString() !== idRewardOld._id.toString())
+          throw new Error("Tên khen thưởng kỷ luật đã tồn tại!");
+      } else {
+        const reward = await Reward.findOne({ name: value });
+        if (reward) throw new Error("Tên khen thưởng kỷ luật đã tồn tại!");
+      }
     }),
   body("level").not().isEmpty().withMessage("Vui lòng chọn cấp độ!"),
   body("type")
@@ -30,7 +37,10 @@ exports.validReward = [
     .withMessage("Vui lòng chọn loại Khen thưởng hay kỷ luật!")
     .custom((value) => {
       if (value !== "reward" && value !== "discipline")
-        throw new Error("Loại không đúng!");
+        return new Error("Loại không đúng!");
+      else {
+        return true;
+      }
     }),
 ];
 
@@ -115,8 +125,12 @@ exports.deleteReward = async (req, res, next) => {
 exports.getListReward = async (req, res, next) => {
   try {
     const type = req.query.type;
-
-    const reward = await Reward.find(type ? { type: type } : "").exec();
+    let reward;
+    if (type) {
+      reward = await Reward.find({ type: type }).exec();
+    } else {
+      reward = await Reward.find().exec();
+    }
     return res.status(200).json({ message: "Success!", result: reward });
   } catch (err) {
     const error = new Error(err);

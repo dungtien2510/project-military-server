@@ -9,6 +9,8 @@ const router = express.Router();
 
 const Military = require("../models/military");
 const militaryController = require("../controller/military");
+
+const rewardController = require("../controller/reward");
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////
 ///////////////
@@ -173,9 +175,6 @@ router.put(
   locationController.postEditLocation
 );
 
-// get list of location
-router.get("/location/list", locationController.getListLocation);
-
 //get location details
 // router.get("/location/details/:id", locationController.getLocationDetails);
 
@@ -184,7 +183,6 @@ router.delete("/location/delete/:id", locationController.deleteLocation);
 
 //destroy location xóa luôn đơn vị cấp dưới
 router.delete("/location/destroy/:id", locationController.destroyLocation);
-module.exports = router;
 
 ////////////////////////////////////////////////////////////
 //////////////////////////////////
@@ -210,3 +208,33 @@ router.put(
   relativeController.relativeValid,
   relativeController.editRelative
 );
+
+//////////////////////////////////////////////////////////
+/////////////////////////////////////
+//////////////
+//Rewards
+
+// get reward
+router.get("/reward/list", rewardController.getListReward);
+
+//get detait reward
+router.get("/reward/detait/:id", rewardController.getDetaitReward);
+
+//post add reward
+router.post(
+  "/reward/add",
+  rewardController.validReward,
+  rewardController.postAddReward
+);
+
+//put edit reward
+router.put(
+  "/reward/edit/:id",
+  rewardController.validReward,
+  rewardController.editReward
+);
+
+//delete reward
+router.delete("/reward/delete", rewardController.deleteReward);
+
+module.exports = router;
