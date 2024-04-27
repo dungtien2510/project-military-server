@@ -1,4 +1,3 @@
-const User = require("../models/user");
 const { validationResult, check, body } = require("express-validator");
 // const io = require("../socket");
 const Military = require("../models/military");
@@ -67,7 +66,17 @@ exports.locationValidator = [
     .withMessage("Vui lòng nhập tên đơn vị!")
     .custom(async (value, { req }) => {
       const locationMatch = await Location.findOne({ name: value });
-      if (locationMatch) throw new Error("Tên đơn vị đã tồn tại");
+
+      if (req.params.id) {
+        const locationOld = await Location.findById(req.params.id);
+        if (
+          locationMatch &&
+          locationMatch._id.toString() !== locationOld._id.toString()
+        )
+          throw new Error("Tên đơn vị đã tồn tại");
+      } else {
+        if (locationMatch) throw new Error("Tên đơn vị đã tồn tại");
+      }
     }),
   body("level")
     .not()
@@ -88,12 +97,16 @@ exports.locationValidator = [
 
   //   }
   // }),
-  body("id_master").custom(async (value, { req }) => {
-    if (value) {
-      const idMilitary = await Military.findById(value);
-      if (!idMilitary) throw new Error("Quân nhân không tồn tại!");
-    }
-  }),
+  body("id_master")
+    .not()
+    .isEmpty()
+    .withMessage("Vui lòng chọn người đứng đầu!")
+    .custom(async (value, { req }) => {
+      if (value) {
+        const idMilitary = await Military.findById(value);
+        if (!idMilitary) throw new Error("Quân nhân không tồn tại!");
+      }
+    }),
 ];
 
 //add location

@@ -16,13 +16,12 @@ exports.validReward = [
     .isEmpty()
     .withMessage("Vui Lòng nhập tên mức khen thưởng kỷ luật!")
     .custom(async (value, { req }) => {
+      const reward = await Reward.findOne({ name: value });
       if (req.params.id) {
-        const reward = await Reward.findOne({ name: value });
         const idRewardOld = await Reward.findById(req.params.id);
         if (reward && reward._id.toString() !== idRewardOld._id.toString())
           throw new Error("Tên khen thưởng kỷ luật đã tồn tại!");
       } else {
-        const reward = await Reward.findOne({ name: value });
         if (reward) throw new Error("Tên khen thưởng kỷ luật đã tồn tại!");
       }
     }),
