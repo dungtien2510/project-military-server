@@ -1,10 +1,6 @@
 const { validationResult, check, body } = require("express-validator");
 // const io = require("../socket");
-const Military = require("../models/military");
 
-const Location = require("../models/location");
-
-const mongoose = require("mongoose");
 const Reward = require("../models/reward");
 
 /////////////////////////////////////////////////////////
@@ -37,10 +33,8 @@ exports.validReward = [
     .withMessage("Vui lòng chọn loại Khen thưởng hay kỷ luật!")
     .custom((value) => {
       if (value !== "reward" && value !== "discipline")
-        return new Error("Loại không đúng!");
-      else {
-        return true;
-      }
+        throw new Error("Loại không đúng!");
+      return true;
     }),
 ];
 
@@ -113,6 +107,7 @@ exports.deleteReward = async (req, res, next) => {
     return res.status(200).json({ message: "Xóa thành công!" });
   } catch (err) {
     const error = new Error(err);
+
     error.httpStatusCode = 500;
     return next(error);
   }

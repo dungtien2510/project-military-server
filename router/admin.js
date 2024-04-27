@@ -235,6 +235,6 @@ router.put(
 );
 
 //delete reward
-router.delete("/reward/delete", rewardController.deleteReward);
+router.delete("/reward/delete/:id", rewardController.deleteReward);
 
 module.exports = router;
