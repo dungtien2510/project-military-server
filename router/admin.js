@@ -116,17 +116,18 @@ router.put(
       .isEmpty()
       .withMessage("Vui lòng nhập số hiệu!")
       .custom(async (value, { req }) => {
-        const military = await Military.find({
+        const military = await Military.findOne({
           id_number: value,
-        })
-          .select("_id")
-          .exec();
-        console.log(military);
-        if (military.length > 0) {
-          if (military.some((item) => item._id.toString() !== req.params.id)) {
-            throw new Error("ID đã tồn tại!");
-          }
-        }
+        });
+        const militaryOld = await Military.findById(req.params.id);
+        if (military && military._id.toString() !== militaryOld._id.toString())
+          throw new Error("Số hiệu quân nhân đã tồn tại!");
+
+        // if (military.length > 0) {
+        //   if (military.some((item) => item._id.toString() !== req.params.id)) {
+        //     throw new Error("ID đã tồn tại!");
+        //   }
+        // }
       }),
   ],
   militaryController.militaryValid,

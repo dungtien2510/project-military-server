@@ -21,6 +21,7 @@ const Family = require("../models/family");
 const Location = require("../models/location");
 
 const mongoose = require("mongoose");
+const Relative = require("../models/Relative");
 
 ////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
@@ -427,10 +428,6 @@ exports.militaryValid = [
     // .isAlphanumeric()
     .withMessage("Vui lòng nhập họ tên!"),
 
-  body("id_number")
-    .not()
-    .isEmpty()
-    .withMessage("Vui lòng nhập số hiệu quân nhân"),
   body("object").not().isEmpty().withMessage("Vui lòng nhập đối tượng!"),
   body("rank").not().isEmpty().withMessage("Vui lòng nhập nhập cấp bậc!"),
   body("rank_time")
@@ -477,45 +474,39 @@ exports.postAddMilitary = async (req, res, next) => {
       validationErrors: error.array(),
     });
   }
-  const {
-    name,
-    id_number,
-    object,
-    rank,
-    rank_time,
-    academic_level,
-    position,
-    location,
-    birthday,
-    join_army,
-    gender,
-    hometown,
-    address,
-    info,
-    status,
-    marital_status,
-  } = req.body;
-  try {
-    const name_location = await Location.findById(location);
+  const data = {
+    name: req.body.name,
+    id_number: req.body.id_number,
+    gender: req.body.gender,
+    object: req.body.object,
+    phone: req.body.phone ? req.body.phone : "",
+    info: req.body.info,
+    rank: req.body.rank,
+    rank_time: new Date(req.body.rank_time),
+    position: req.body.position,
+    location: req.body.location,
+    birthday: new Date(req.body.birthday),
+    join_army: new Date(req.body.join_army),
+    hometown: req.body.hometown,
+    address: req.body.address,
 
-    const military = new Military({
-      name,
-      id_number,
-      object,
-      rank,
-      rank_time: new Date(rank_time),
-      academic_level,
-      position,
-      location,
-      birthday: new Date(birthday), // yy/mm/dd
-      join_army: new Date(join_army),
-      gender,
-      hometown,
-      address,
-      info,
-      status,
-      marital_status,
-    });
+    academic_level: req.body.academic_level,
+    pro_expertise: req.body.pro_expertise,
+    status: req.body.status,
+    reason: req.body.reason ? req.body.reason : "",
+    marital_status: req.body.marital_status,
+    reward: req.body.reward ? req.body.reward : [],
+    discipline: req.body.discipline ? req.body.discipline : [],
+    family: req.body.family ? req.body.family : {},
+  };
+  if (req.body.party) {
+    data.party = new Date(req.body.party);
+  }
+  if (req.body.union_member) {
+    data.union_member = new Date(req.body.union_member);
+  }
+  try {
+    const military = new Military(data);
 
     const result = await military.save();
     res
@@ -532,6 +523,7 @@ exports.postAddMilitary = async (req, res, next) => {
 exports.deleteMilitary = async (req, res, next) => {
   try {
     const idMilitary = req.params.id;
+
     await Military.findByIdAndDelete(idMilitary);
     res.status(200).json({ message: "Xóa thành công!" });
   } catch (err) {
@@ -551,95 +543,108 @@ exports.editMilitary = async (req, res, next) => {
       validationErrors: error.array(),
     });
   }
-  const {
-    id_number,
-    name,
-    gender,
-    object,
-    phone,
-    info,
-    rank,
-    rank_time,
-    position,
-    location,
-    birthday,
-    join_army,
-    hometown,
-    address,
-    academic_level,
-    party,
-    union_member,
-    pro_expertise,
-    status,
-    reason,
-    marital_status,
-    reward,
-    discripline,
-    family,
-  } = req.body;
+  const family = req.body.family;
+  const idMilitary = req.params.id;
   const dataMilitary = {
-    id_number,
-    name,
-    gender,
-    object,
-    phone,
-    info,
-    rank,
-    rank_time: new Date(rank_time),
-    position,
-    location,
-    birthday: new Date(birthday),
-    join_army: new Date(join_army),
-    hometown,
-    address,
-    academic_level,
-    party,
-    union_member,
-    pro_expertise,
-    status,
-    reason,
-    marital_status,
+    name: req.body.name,
+    id_number: req.body.id_number,
+    gender: req.body.gender,
+    object: req.body.object,
+    phone: req.body.phone ? req.body.phone : "",
+    info: req.body.info,
+    rank: req.body.rank,
+    rank_time: new Date(req.body.rank_time),
+    position: req.body.position,
+    location: req.body.location,
+    birthday: new Date(req.body.birthday),
+    join_army: new Date(req.body.join_army),
+    hometown: req.body.hometown,
+    address: req.body.address,
 
-    reward,
-    discripline,
-    family,
+    academic_level: req.body.academic_level,
+    pro_expertise: req.body.pro_expertise,
+    status: req.body.status,
+    reason: req.body.reason ? req.body.reason : "",
+    marital_status: req.body.marital_status,
+    reward: req.body.reward ? req.body.reward : [],
+    discipline: req.body.discipline ? req.body.discipline : [],
+    // family [{id:..., role:...}, {id:[], role: children}]
   };
+  if (req.body.party) {
+    dataMilitary.party = new Date(req.body.party);
+  }
+  if (req.body.union_member) {
+    dataMilitary.union_member = new Date(req.body.union_member);
+  }
   try {
-    const name_location = await Location.findById(location);
-    // const dataMilitary = {
-    //   id_number,
-    //   name,
-    //   gender,
-    //   object,
-    //   phone,
-    //   info,
-    //   rank,
-    //   rank_time: new Date(rank_time),
-    //   position,
-    //   location: { name_location: name_location.name, id: location },
-    //   birthday: new Date(birthday),
-    //   join_army: new Date(join_army),
-    //   hometown,
-    //   address,
-    //   academic_level,
-    //   party,
-    //   union_member,
-    //   pro_expertise,
-    //   bonus,
-    //   discripline,
-    // };
-    // if (biological_parents) {
-    //   const family = new Family(biological_parents);
-    //   const family_parents = await family.save();
-    //   dataMilitary.biological_parents = family_parents._id;
-    // }
-    // if (maternal_family) {
-    //   const family = new Family(maternal_family);
-    //   const family_maternal = await family.save();
-    //   dataMilitary.maternal_family = family_maternal._id;
-    // }
+    if (family) {
+      const familyNew = {};
+      family.forEach((v, i) => {
+        familyNew[v.role] = v.id;
+      });
+      dataMilitary.family = familyNew;
+      const militaryOld = await Military.findById(idMilitary);
+      const familyOld = militaryOld.family;
+      const checkChange = (a, b) => {
+        // a is family old, b is family new
+        if (Object.keys(a).length === 0 && b.length > 0) return true;
+
+        // nếu a và b trùng nhau return false ngược lại return true
+        return b.some((v, i) => {
+          if (v.role === "children" && v.id.length > 0) {
+            if (!a.children || a.children.length <= 0) return false;
+            return a.children.some((va, ia) => {
+              !v.id.some((vb, ib) => {
+                return va.toString() === vb.toString();
+              });
+            });
+          }
+
+          if (a[v.role] && v.id.toString() === a[v.role].toString())
+            return false;
+          return true;
+        });
+      };
+
+      if (checkChange(familyOld, family)) {
+        //xóa phần family cũ
+        if (familyOld.children && familyOld.children.length > 0) {
+          await Relative.updateMany(
+            { _id: { $in: familyOld.children } },
+            { $pull: { id_military: { id: idMilitary, role: "children" } } }
+          );
+        }
+        familyOld.children = "";
+        await Promise.all(
+          Object.keys(familyOld).map(async (v, i) => {
+            const upd = await Relative.findByIdAndUpdate(familyOld[v], {
+              $pull: { id_military: { id: idMilitary, role: v } },
+            });
+          })
+        );
+        // cập nhật relative mới
+        await Promise.all(
+          family.map(async (v, i) => {
+            if (v.role === "children") {
+              await Relative.updateMany(
+                { _id: { $in: v.id } },
+                {
+                  $push: {
+                    id_military: { id: idMilitary, role: "children" },
+                  },
+                }
+              );
+            } else {
+              await Relative.findByIdAndUpdate(v.id, {
+                $push: { id_military: { id: idMilitary, role: v.role } },
+              });
+            }
+          })
+        );
+      }
+    }
     const military = await Military.findByIdAndUpdate(
-      req.params.id,
+      idMilitary,
       dataMilitary,
       { new: true }
     );
