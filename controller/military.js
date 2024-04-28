@@ -374,12 +374,39 @@ exports.getMilitarys = async (req, res, next) => {
     const birthday = req.query.birthday;
     const join_army = req.query.join_army;
     const object = req.query.object;
+    const {
+      id_number,
+      gender,
+      phone,
+      academic_level,
+      status,
+      marital_status,
+      reward,
+      discipline,
+    } = req.query;
     if (rank) query.rank = rank;
     // if (location) query.location = location;
     if (join_army) query.join_army = join_army;
     if (birthday) query.birthday = birthday;
     if (position) query.position = position;
     if (object) query.object = object;
+    if (id_number) query.id_number = id_number;
+    if (gender) query.gender = gender;
+    if (phone) query.phone = phone;
+    if (academic_level) query.academic_level = academic_level;
+    if (status) query.status = status;
+    if (marital_status) query.marital_status = marital_status;
+    if (reward)
+      query.reward = {
+        $elemMatch: {
+          id: reward,
+        },
+      };
+    if (discipline)
+      query.discipline = {
+        $elemMatch: { id: discipline },
+      };
+
     const listLocations = await getLocations(location);
 
     query.location = { $in: listLocations };
