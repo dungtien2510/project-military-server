@@ -497,19 +497,47 @@ exports.postAddMilitary = async (req, res, next) => {
     marital_status: req.body.marital_status,
     reward: req.body.reward ? req.body.reward : [],
     discipline: req.body.discipline ? req.body.discipline : [],
-    family: req.body.family ? req.body.family : {},
   };
+  const family = req.body.family; // family =[{id:..., role:...}, {id:[], role: "children"}]
   if (req.body.party) {
     data.party = new Date(req.body.party);
   }
   if (req.body.union_member) {
     data.union_member = new Date(req.body.union_member);
   }
-  try {
-    const military = new Military(data);
 
+  try {
+    if (family && family.length > 0) {
+      const familyNew = {};
+      family.forEach((v, i) => {
+        familyNew[v.role] = v.id;
+      });
+      data.family = familyNew;
+      const military = new Military(data);
+      const result = await military.save();
+      await Promise.all(
+        family.map(async (vfam, ifam) => {
+          if (vfam.role === "children") {
+            await Relative.updateMany(
+              { _id: { $in: vfam.id } },
+              { $push: { id_military: { id: result._id, role: "children" } } }
+            );
+          } else {
+            await Relative.updateMany(
+              { _id: vfam.id },
+              { $push: { id_military: { id: result._id, role: vfam.role } } }
+            );
+          }
+        })
+      );
+      return res.status(200).json({
+        message: "Thêm quân nhân thành công!",
+        id_military: result._id,
+      });
+    }
+    const military = new Military(data);
     const result = await military.save();
-    res
+    return res
       .status(200)
       .json({ message: "Thêm quân nhân thành công!", id_military: result._id });
   } catch (err) {
@@ -585,6 +613,8 @@ exports.editMilitary = async (req, res, next) => {
       dataMilitary.family = familyNew;
       const militaryOld = await Military.findById(idMilitary);
       const familyOld = militaryOld.family;
+
+      //hàm check family khác hay không
       const checkChange = (a, b) => {
         // a is family old, b is family new
         if (Object.keys(a).length === 0 && b.length > 0) return true;
