@@ -551,7 +551,50 @@ exports.postAddMilitary = async (req, res, next) => {
 exports.deleteMilitary = async (req, res, next) => {
   try {
     const idMilitary = req.params.id;
-
+    const military = await Military.findById(idMilitary);
+    const family = military.family;
+    if (
+      family &&
+      Object.keys(family).length > 0 &&
+      Object.values(family).some((v, i) => v && v.length > 0)
+    ) {
+      // không sử dụng .map Vì map không chờ đợi các promise hoàn thành trước khi kết thúc,
+      // nên việc thực hiện tất cả các promise một cách đồng thời bằng Promise.all có thể gây ra sự cố.
+      // await Promise.all(
+      //   Object.keys(family).map(async (vfam, ifam) => {
+      //     if (vfam === "children" && family[vfam].length > 0) {
+      //       console.log(family[vfam]);
+      //       await Relative.updateMany(
+      //         { _id: { $in: family[vfam] } },
+      //         { $pull: { id_military: { id: idMilitary, role: "children" } } }
+      //       );
+      //     } else {
+      //       console.log("asdf", family[vfam], vfam);
+      //       const df = await Relative.findByIdAndUpdate(
+      //         family[vfam],
+      //         {
+      //           $pull: { id_military: { id: idMilitary, role: family[vfam] } },
+      //         },
+      //         { new: true }
+      //       );
+      //       console.log(df);
+      //     }
+      //   })
+      // );
+      for (const [vfam, ifam] of Object.entries(family)) {
+        // vfam và ifam lưu lần lượt key value của object.entries(family)
+        if (vfam === "children" && ifam.length > 0) {
+          await Relative.updateMany(
+            { _id: { $in: ifam } },
+            { $pull: { id_military: { id: idMilitary, role: "children" } } }
+          );
+        } else {
+          await Relative.findByIdAndUpdate(ifam, {
+            $pull: { id_military: { id: idMilitary, role: vfam } },
+          });
+        }
+      }
+    }
     await Military.findByIdAndDelete(idMilitary);
     res.status(200).json({ message: "Xóa thành công!" });
   } catch (err) {
