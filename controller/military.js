@@ -22,6 +22,7 @@ const Location = require("../models/location");
 
 const mongoose = require("mongoose");
 const Relative = require("../models/Relative");
+const { throws } = require("assert");
 
 ////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
@@ -226,8 +227,11 @@ exports.getInforGeneral = async (req, res, next) => {
 //get quân số từng đơn vị
 exports.getNumberMilLoc = async (req, res, next) => {
   try {
-    const idLocation = req.params.id;
+    const idLocation = req.query.id ? req.query.id : req.user.location;
+    const location = await Location.findById(idLocation);
+    if (!location) throw new Error("Không tìm thấy đơn vị!");
     const listLocations = await getLocations(idLocation);
+
     console.log(listLocations);
     //tổng quân số
     const totalMilitarys = await Military.countDocuments({
@@ -241,15 +245,28 @@ exports.getNumberMilLoc = async (req, res, next) => {
     });
 
     //quân số sỹ quan
-    const officer = await Military.countDocuments({ object: "officer" });
+    const officer = await Military.countDocuments({
+      location: { $in: listLocations },
+      object: "officer",
+    });
 
     //quân số QNCN
     const pro_serviceman = await Military.countDocuments({
+      location: { $in: listLocations },
       object: "serviceman",
     });
 
     //quân số HSQ,cs
-    const soldier = await Military.countDocuments({ object: "soldier" });
+    const soldier = await Military.countDocuments({
+      location: { $in: listLocations },
+      object: "soldier",
+    });
+
+    //Quân số CNVCQP
+    const workers = await Military.countDocuments({
+      location: { $in: listLocations },
+      object: "worker",
+    });
 
     //quân số phép
     const militarysP = await Military.countDocuments({
@@ -284,8 +301,49 @@ exports.getNumberMilLoc = async (req, res, next) => {
       status: "n",
     });
 
+    const locationLower = await Location.find({ superior: idLocation });
+
+    //tất cả các đơn vị cấp dưới
+    const resultLocation = await Promise.all(
+      locationLower.map(async (v, i) => {
+        try {
+          const listLocaLower = await getLocations(v._id);
+
+          //tính số lượng quân nhân của đơn vị cấp dưới
+          const totalMilitaryLocaLower = await Military.countDocuments({
+            location: { $in: listLocaLower },
+          });
+
+          //tổng số quân nhân có mặt
+          const totalMilitaryPre = await Military.countDocuments({
+            location: { $in: listLocaLower },
+            status: "x",
+          });
+
+          //tổng số quân nhân vắng mặt
+          const totalMilitaryAbsent = await Military.countDocuments({
+            location: { $in: listLocaLower },
+            status: { $ne: "x" },
+          });
+
+          return {
+            master: v.master,
+            _id: v._id,
+            name: v.name,
+            totalMilitaryLocaLower,
+            totalMilitaryPre,
+            totalMilitaryAbsent,
+          };
+        } catch (err) {
+          throw new Error(err);
+        }
+      })
+    );
+
     res.status(200).json({
       message: "success",
+      nameLocation: location.name,
+      master: location.master,
       totalMilitarys,
       presentMilitarys,
       absentMilitarys: {
@@ -300,7 +358,9 @@ exports.getNumberMilLoc = async (req, res, next) => {
         officer,
         pro_serviceman,
         soldier,
+        workers,
       },
+      locationLower: resultLocation,
     });
   } catch (err) {
     const error = new Error(err);
