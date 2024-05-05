@@ -483,7 +483,7 @@ exports.getMilitarys = async (req, res, next) => {
     );
     const military = await Military.find(name ? queryfunction(name) : query)
       // { $text: { $search: name } }
-
+      .populate({ path: "location", select: "name" })
       .select(
         "name rank object position location birthday join_army hometown address"
       )
