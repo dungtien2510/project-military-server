@@ -16,7 +16,7 @@ const PDFDocument = require("pdfkit");
 // const { getIO } = require("../socket");
 // const { result } = require("lodash");
 
-const Family = require("../models/family");
+const Reward = require("../models/reward");
 
 const Location = require("../models/location");
 
@@ -485,7 +485,7 @@ exports.getMilitarys = async (req, res, next) => {
       // { $text: { $search: name } }
       .populate({ path: "location", select: "name" })
       .select(
-        "name rank object position location birthday join_army hometown address"
+        "name rank object position location birthday join_army phone address"
       )
       .skip(skip)
       .limit(limit)
@@ -494,6 +494,19 @@ exports.getMilitarys = async (req, res, next) => {
       military: military,
       totalMilitarys: totalMilitarys,
     });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+exports.getListFilter = async (req, res, next) => {
+  try {
+    const locations = await Location.find().select("_id name level").exec();
+    const reward = await Reward.find({ type: "reward" }).exec();
+    const discipline = await Reward.find({ type: "discipline" }).exec();
+    return res.status(200).json({ locations, reward, discipline });
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;

@@ -18,6 +18,8 @@ router.get("/military/list", militaryController.getMilitarys);
 
 router.get("/military/detail/:id", militaryController.getIdMilitary);
 
+//
+router.get("/list/filter", militaryController.getListFilter);
 /////////////////////////////////////////////
 ////////////////////////////////
 // Location
