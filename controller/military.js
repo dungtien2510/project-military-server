@@ -22,7 +22,7 @@ const Location = require("../models/location");
 
 const mongoose = require("mongoose");
 const Relative = require("../models/Relative");
-const Position = require("../models/Position");
+const Position = require("../models/position");
 
 ////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
@@ -536,7 +536,14 @@ exports.militaryValid = [
     .isEmpty()
     .withMessage("Vui lòng nhập nhập tháng năm nhập!"),
   body("academic_level").not().isEmpty().withMessage("Vui lòng nhập trình độ!"),
-  body("position").not().isEmpty().withMessage("Vui lòng nhập chức vụ!"),
+  body("position")
+    .not()
+    .isEmpty()
+    .withMessage("Vui lòng nhập chức vụ!")
+    .custom(async (value) => {
+      const position = await Position.findById(value);
+      if (!position) throw new Error("Chức vụ không tồn tại!");
+    }),
   body("location").custom(async (value, { req }) => {
     const locationReq = await Location.findById(value);
     if (!locationReq) throw new Error("Not found location");
