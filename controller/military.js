@@ -22,7 +22,7 @@ const Location = require("../models/location");
 
 const mongoose = require("mongoose");
 const Relative = require("../models/Relative");
-const { throws } = require("assert");
+const Position = require("../models/Position");
 
 ////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
@@ -506,7 +506,8 @@ exports.getListFilter = async (req, res, next) => {
     const locations = await Location.find().select("_id name level").exec();
     const reward = await Reward.find({ type: "reward" }).exec();
     const discipline = await Reward.find({ type: "discipline" }).exec();
-    return res.status(200).json({ locations, reward, discipline });
+    const positions = await Position.find().select("_id name").exec();
+    return res.status(200).json({ locations, reward, discipline, positions });
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;
