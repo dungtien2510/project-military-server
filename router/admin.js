@@ -9,6 +9,7 @@ const router = express.Router();
 
 const Military = require("../models/military");
 const militaryController = require("../controller/military");
+const positionController = require("../controller/position");
 
 const rewardController = require("../controller/reward");
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,5 +238,23 @@ router.put(
 
 //delete reward
 router.delete("/reward/delete/:id", rewardController.deleteReward);
+
+/////////////////////////////////////
+///////////////////////////
+/////////
+//position
+//add postion
+router.post(
+  "/position/add",
+  positionController.validatePostion,
+  positionController.postPosition
+);
+
+//edit postion
+router.put(
+  "/position/edit/:id",
+  positionController.validatePostion,
+  positionController.putPosition
+);
 
 module.exports = router;

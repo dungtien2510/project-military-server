@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const militaryController = require("../controller/military");
 const locationController = require("../controller/location");
-
+const positionController = require("../controller/position");
 // router.get("/military/general", militaryController.getInforGeneral);
 
 // get sô lượng quân nhân từng đơn vị
@@ -26,5 +26,14 @@ router.get("/list/filter", militaryController.getListFilter);
 
 // get list of location
 router.get("/location/list", locationController.getListLocation);
+
+////////////////////////////////////////////
+/////////////////////////////////
+//position
+//get list of position
+router.get("/position/list", positionController.getPosition);
+
+//get detail of position
+router.get("/position/detail/:id", positionController.getDetailPosition);
 
 module.exports = router;
