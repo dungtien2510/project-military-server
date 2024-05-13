@@ -432,6 +432,7 @@ exports.getMilitarys = async (req, res, next) => {
       ? req.query.location
       : req.user.location;
     const birthday = req.query.birthday;
+
     const join_army = req.query.join_army;
     const object = req.query.object;
     const {
@@ -446,8 +447,26 @@ exports.getMilitarys = async (req, res, next) => {
     } = req.query;
     if (rank) query.rank = rank;
     // if (location) query.location = location;
-    if (join_army) query.join_army = join_army;
-    if (birthday) query.birthday = birthday;
+    if (join_army) {
+      const startDate = new Date(join_army + "-1-1");
+
+      const endDate = new Date(join_army + "-12-31");
+      console.log(startDate, endDate);
+      query.join_army = {
+        $gte: startDate,
+        $lt: endDate,
+      };
+    }
+
+    if (birthday) {
+      const startDate = new Date(birthday, 0, 1);
+      const endDate = new Date(birthday, 11, 31);
+      query.birthday = {
+        $gte: startDate,
+        $lt: endDate,
+      };
+    }
+
     if (position) query.position = position;
     if (object) query.object = object;
     if (id_number) query.id_number = id_number;
@@ -484,6 +503,7 @@ exports.getMilitarys = async (req, res, next) => {
     const military = await Military.find(name ? queryfunction(name) : query)
       // { $text: { $search: name } }
       .populate({ path: "location", select: "name" })
+      .populate({ path: "position", select: "name" })
       .select(
         "name rank object position location birthday join_army phone address"
       )
