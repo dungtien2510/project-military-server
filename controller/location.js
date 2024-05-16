@@ -256,29 +256,68 @@ exports.destroyLocation = async (req, res, next) => {
 
 //get Location lower
 exports.getListLocation = async (req, res, next) => {
+  const query = {};
+  const maxDepth = req.query.maxDepth;
   try {
-    const maxDepth = req.query.maxDepth;
     const idLocation = req.query.id ? req.query.id : req.user.location;
-    const level = req.query.level;
-    console.log(idLocation);
     const listIdLocations = await getLocations(idLocation, maxDepth);
-    if (level) {
-      const listLocations = await Location.find({
-        $and: [{ _id: { $in: listIdLocations } }, { level: level }],
-      });
-      return res.status(200).json({
-        message: "Success",
-        result: listLocations,
-      });
-    } else {
-      const listLocations = await Location.find({
-        _id: { $in: listIdLocations },
-      });
-      return res.status(200).json({
-        message: "Success",
-        result: listLocations,
-      });
+
+    query._id = { $in: listIdLocations };
+    // const level = req.query.level;
+    if (req.query.nameMilitary) {
+      const militarys = await Military.find({
+        $text: { $search: req.query.nameMilitary },
+      }).select("_id");
+
+      query["master.id"] = { $in: militarys };
     }
+    if (req.query.idMilitary) {
+      const military = await Military.findOne({
+        id_number: req.query.idMilitary,
+      }).select("_id");
+      query["master.id"] = military;
+    }
+    const queryfunction = (name) => {
+      const arr = Object.entries(query).map(([key, value]) => ({
+        [key]: value,
+      }));
+      return { $and: [{ $text: { $search: name } }, ...arr] };
+    };
+    if (req.query.level) {
+      query.level = req.query.level;
+      console.log("ádfasdf", query);
+    }
+
+    // if (level) {
+    //   const listLocations = await Location.find({
+    //     $and: [{ _id: { $in: listIdLocations } }, { level: level }],
+    //   }).populate({ path: "superior", select: "name" });
+
+    //   return res.status(200).json({
+    //     message: "Success",
+    //     result: { locations: listLocations, total: listLocations.length },
+    //   });
+    // } else {
+    //   const listLocations = await Location.find({
+    //     _id: { $in: listIdLocations },
+    //   }).populate({ path: "superior", select: "name" });
+
+    //   return res.status(200).json({
+    //     message: "Success",
+    //     result: { locations: listLocations, total: listLocations.length },
+    //   });
+    // }
+    const listLocations = await Location.find(
+      req.query.name ? queryfunction(req.query.name) : query
+    ).populate({
+      path: "superior",
+      select: "name",
+    });
+
+    return res.status(200).json({
+      message: "Success",
+      result: { locations: listLocations, total: listLocations.length },
+    });
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;

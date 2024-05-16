@@ -28,11 +28,67 @@ const mongoose = require("mongoose");
 
 //client
 
+//get list người thân
+exports.getRelatives = async (req, res, next) => {
+  const query = {};
+
+  if (req.query.role) query["id_military.role"] = req.query.role;
+
+  try {
+    if (req.query.nameMilitary) {
+      const military = await Military.find({
+        $text: { $search: req.query.nameMilitary },
+      })
+        .select("_id")
+        .exec();
+      console.log(military);
+      query["id_military.id"] = { $in: military.map((v) => v._id) };
+    }
+    if (req.query.idMilitary) {
+      const military = await military
+        .findOne({ id_number: req.query.idMilitary })
+        .select("_id");
+      query["id_military.id"] = military._id;
+    }
+    const queryfunction = (name) => {
+      const arr = Object.entries(query).map(([key, value]) => ({
+        [key]: value,
+      }));
+      return { $and: [{ $text: { $search: name } }, ...arr] };
+    };
+    console.log(query);
+    const relatives = await Relative.find(
+      req.query.name ? queryfunction(req.query.name) : query
+    )
+      .populate({
+        path: "id_military.id",
+        select: "name _id id_number position",
+      })
+      .populate({
+        path: "id_military.id.position",
+        select: "name _id",
+      });
+    const totalRelatives = await Relative.countDocuments(
+      req.query.name ? queryfunction(req.query.name) : query
+    );
+    return res.status(200).json({ relatives, totalRelatives });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
 //get chi tiết người thân
 exports.getIdRelative = async (req, res, next) => {
   try {
     const idRelative = req.params.id;
-    const relative = await Relative.findById(idRelative);
+    const relative = await Relative.findById(idRelative)
+      .populate({
+        path: "id_military.id",
+        select: "name position",
+      })
+      .populate({ path: "id_military.id.position", select: "name" });
     res.status(200).json(relative);
   } catch (err) {
     const error = new Error(err);

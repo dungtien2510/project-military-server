@@ -34,7 +34,12 @@ const Position = require("../models/position");
 exports.getIdMilitary = async (req, res, next) => {
   try {
     const idMilitary = req.params.id;
-    const military = await Military.findById(idMilitary);
+    const military = await Military.findById(idMilitary)
+      .populate({
+        path: "location",
+        select: "name",
+      })
+      .populate({ path: "position", select: "name" });
     res.status(200).json(military);
   } catch (err) {
     const error = new Error(err);

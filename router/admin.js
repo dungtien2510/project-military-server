@@ -191,9 +191,6 @@ router.delete("/location/destroy/:id", locationController.destroyLocation);
 ///////////
 // relative
 
-// get detail relative
-router.get("/relative/detail/:id", relativeController.getIdRelative);
-
 // post relative
 router.post(
   "/relative/add",
