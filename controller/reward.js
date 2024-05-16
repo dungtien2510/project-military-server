@@ -118,14 +118,20 @@ exports.deleteReward = async (req, res, next) => {
 //get
 exports.getListReward = async (req, res, next) => {
   try {
-    const type = req.query.type;
-    let reward;
-    if (type) {
-      reward = await Reward.find({ type: type }).exec();
-    } else {
-      reward = await Reward.find().exec();
-    }
-    return res.status(200).json({ message: "Success!", result: reward });
+    const query = {};
+    if (req.query.type) query.type = req.query.type;
+    if (req.query.level) query.level = req.query.level;
+    const queryfunction = (name) => {
+      const arr = Object.entries(query).map(([key, value]) => ({
+        [key]: value,
+      }));
+      return { $and: [{ $text: { $search: name } }, ...arr] };
+    };
+
+    const result = await Reward.find(
+      req.query.name ? queryfunction(req.query.name) : query
+    );
+    return res.status(200).json({ message: "Success!", result });
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;

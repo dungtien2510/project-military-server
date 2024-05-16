@@ -213,12 +213,6 @@ router.put(
 //////////////
 //Rewards
 
-// get reward
-router.get("/reward/list", rewardController.getListReward);
-
-//get detait reward
-router.get("/reward/detait/:id", rewardController.getDetaitReward);
-
 //post add reward
 router.post(
   "/reward/add",

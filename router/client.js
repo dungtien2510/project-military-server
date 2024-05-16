@@ -4,6 +4,7 @@ const militaryController = require("../controller/military");
 const locationController = require("../controller/location");
 const positionController = require("../controller/position");
 const relativeController = require("../controller/relative");
+const rewardController = require("../controller/reward");
 // router.get("/military/general", militaryController.getInforGeneral);
 
 // get sô lượng quân nhân từng đơn vị
@@ -46,5 +47,15 @@ router.get("/relative/list", relativeController.getRelatives);
 
 // get detail relative
 router.get("/relative/detail/:id", relativeController.getIdRelative);
+
+//////////////////////////////////////////////
+//////////////////////////////////
+////////////////
+//reward
+// get reward
+router.get("/reward/list", rewardController.getListReward);
+
+//get detait reward
+router.get("/reward/detait/:id", rewardController.getDetaitReward);
 
 module.exports = router;
