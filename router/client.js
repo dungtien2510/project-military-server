@@ -16,6 +16,9 @@ router.get("/military/object/:id", militaryController.getObjectMilitarys);
 // lọc military
 router.get("/military/list", militaryController.getMilitarys);
 
+//get list name military
+router.get("/military/listName", militaryController.getNameMilitary);
+
 // router.get("/military/total", militaryController.getInforTotal);
 
 router.get("/military/detail/:id", militaryController.getIdMilitary);

@@ -424,6 +424,21 @@ exports.getObjectMilitarys = async (req, res, next) => {
   }
 };
 
+//get tên Quân hàm của quân nhân
+exports.getNameMilitary = async (req, res, next) => {
+  try {
+    const name = req.query.name;
+    const military = await Military.find({ $text: { $search: name } })
+      .select("name rank _id id_number")
+      .exec();
+    return res.status(200).json(military);
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
 //get quân nhân theo điều kiện lọc
 exports.getMilitarys = async (req, res, next) => {
   try {
