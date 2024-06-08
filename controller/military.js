@@ -428,7 +428,9 @@ exports.getObjectMilitarys = async (req, res, next) => {
 exports.getNameMilitary = async (req, res, next) => {
   try {
     const name = req.query.name;
-    const military = await Military.find({ $text: { $search: name } })
+    const military = await Military.find({
+      name: { $regex: name, $options: "i" }, // $options: "i" để không phân biệt chữ hoa chữ thường $regex: Sử dụng biểu thức chính quy để tìm kiếm các tên chứa từ khóa được cung cấp.
+    })
       .select("name rank _id id_number")
       .exec();
     return res.status(200).json(military);

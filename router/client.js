@@ -29,6 +29,9 @@ router.get("/list/filter", militaryController.getListFilter);
 ////////////////////////////////
 // Location
 
+//get name location
+router.get("/location/listName", locationController.getNameLocation);
+
 // get list of location
 router.get("/location/list", locationController.getListLocation);
 

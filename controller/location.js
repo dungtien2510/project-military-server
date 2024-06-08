@@ -254,6 +254,23 @@ exports.destroyLocation = async (req, res, next) => {
 
 //client
 
+//get name location
+exports.getNameLocation = async (req, res, next) => {
+  const name = req.query.name;
+  try {
+    const locations = await Location.find({
+      name: { $regex: name, $options: "i" }, // $options: "i" để không phân biệt chữ hoa chữ thường $regex: Sử dụng biểu thức chính quy để tìm kiếm các tên chứa từ khóa được cung cấp.
+    })
+      .select("name _id")
+      .exec();
+    return res.status(200).json(locations);
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
 //get Location lower
 exports.getListLocation = async (req, res, next) => {
   const query = {};
