@@ -90,13 +90,12 @@ exports.locationValidator = [
           throw new Error("Cấp đơn vị phải thấp hơn cấp của cấp trên!");
       }
     }),
-  // body("superior").custom(async (value) => {
-  //   if (value) {
-  //     const superior = await Location.findById(value);
-  //     if (!superior) throw new Error("Không tồn tại cấp trên này");
-
-  //   }
-  // }),
+  body("superior").custom(async (value) => {
+    if (value) {
+      const superior = await Location.findById(value);
+      if (!superior) throw new Error("Không tồn tại cấp trên này");
+    }
+  }),
   body("id_master")
     .not()
     .isEmpty()
@@ -146,7 +145,7 @@ exports.postAddLocation = async (req, res, next) => {
       id: req.body.id_master,
       fullName: master.name,
     };
-
+    if (req.body.superior) locationData.superior = req.body.superior;
     const location = new Location(locationData);
     const idLocation = await location.save();
 
