@@ -36,9 +36,7 @@ const relativeSchema = new Schema({
   phone: {
     type: String,
   },
-  info: {
-    type: String,
-  },
+
   job: {
     type: String,
     required: true,

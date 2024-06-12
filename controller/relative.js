@@ -214,7 +214,7 @@ exports.postAddRelative = async (req, res, next) => {
     gender,
     hometown,
     address,
-    info,
+
     job,
     id_military,
     note,
@@ -229,7 +229,7 @@ exports.postAddRelative = async (req, res, next) => {
       gender,
       hometown,
       address,
-      info: info ? info : "",
+
       job,
       phone: phone ? phone : "",
       note: note ? note : "",
@@ -282,7 +282,7 @@ exports.editRelative = async (req, res, next) => {
     gender,
     hometown,
     address,
-    info,
+
     job,
     id_military,
     note,
@@ -298,7 +298,7 @@ exports.editRelative = async (req, res, next) => {
       gender,
       hometown,
       address,
-      info: info ? info : "",
+
       job,
       phone: phone ? phone : "",
       note: note ? note : "",
