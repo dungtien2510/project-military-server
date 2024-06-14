@@ -154,6 +154,9 @@ const createTextIndex = async () => {
 
     await db.collection("rewards").createIndex({ name: "text" });
     console.log('Text index for "name reward" field created successfully.');
+
+    await db.collection("positions").createIndex({ name: "text" });
+    console.log('Text index for "name postion" field created successfully.');
   } catch (error) {
     console.error("Error creating text index:", error);
   }

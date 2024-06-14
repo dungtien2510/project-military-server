@@ -44,6 +44,9 @@ router.get("/position/list", positionController.getPosition);
 //get detail of position
 router.get("/position/detail/:id", positionController.getDetailPosition);
 
+//get name Position
+router.get("/position/listName", positionController.getNamePosition);
+
 /////////////////////////////////////////////
 ////////////////////////////////
 /////////////////////
