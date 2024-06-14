@@ -23,9 +23,8 @@ const militarySchema = new Schema({
     type: String,
     // required: true,
   },
-  info: {
+  note: {
     type: String,
-    required: true,
   },
   rank: {
     type: String,

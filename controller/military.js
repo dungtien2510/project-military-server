@@ -601,7 +601,7 @@ exports.militaryValid = [
   body("gender").not().isEmpty().withMessage("Vui lòng nhập giới tính!"),
   body("hometown").not().isEmpty().withMessage("Vui lòng nhập quê quán!"),
   body("address").not().isEmpty().withMessage("Vui lòng nhập địa chỉ!"),
-  body("info").not().isEmpty().withMessage("Vui lòng nhập thông tin liên hệ!"),
+
   body("status")
     .not()
     .isEmpty()
@@ -629,8 +629,7 @@ exports.postAddMilitary = async (req, res, next) => {
     id_number: req.body.id_number,
     gender: req.body.gender,
     object: req.body.object,
-    phone: req.body.phone ? req.body.phone : "",
-    info: req.body.info,
+
     rank: req.body.rank,
     rank_time: new Date(req.body.rank_time),
     position: req.body.position,
@@ -643,11 +642,14 @@ exports.postAddMilitary = async (req, res, next) => {
     academic_level: req.body.academic_level,
     pro_expertise: req.body.pro_expertise,
     status: req.body.status,
-    reason: req.body.reason ? req.body.reason : "",
+
     marital_status: req.body.marital_status,
     reward: req.body.reward ? req.body.reward : [],
     discipline: req.body.discipline ? req.body.discipline : [],
   };
+  if (req.body.phone) data.phone = req.body.phone;
+  if (req.body.note) data.note = req.body.note;
+  if (req.body.reason) data.reason = req.body.reason;
   const family = req.body.family; // family =[{id:..., role:...}, {id:[], role: "children"}]
   if (req.body.party) {
     data.party = new Date(req.body.party);
