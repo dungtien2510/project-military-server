@@ -67,4 +67,6 @@ router.get("/reward/list", rewardController.getListReward);
 //get detait reward
 router.get("/reward/detait/:id", rewardController.getDetaitReward);
 
+router.get("/reward/listName", rewardController.getListNameReward);
+
 module.exports = router;

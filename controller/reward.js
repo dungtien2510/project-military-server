@@ -125,7 +125,7 @@ exports.getListReward = async (req, res, next) => {
       const arr = Object.entries(query).map(([key, value]) => ({
         [key]: value,
       }));
-      return { $and: [{ $text: { $search: name } }, ...arr] };
+      return { $and: [{ name: { $regex: name, $options: "i" } }, ...arr] };
     };
 
     const result = await Reward.find(
@@ -146,6 +146,20 @@ exports.getDetaitReward = async (req, res, next) => {
     return res
       .status(200)
       .json({ message: "Thêm thành công!", result: reward });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+//get list name reward
+exports.getListNameReward = async (req, res, next) => {
+  try {
+    const name = req.query.name;
+
+    const result = await Reward.find({ name: { $regex: name, $options: "i" } });
+    return res.status(200).json(result);
   } catch (err) {
     const error = new Error(err);
     error.httpStatusCode = 500;
