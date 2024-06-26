@@ -57,6 +57,8 @@ router.get("/relative/list", relativeController.getRelatives);
 // get detail relative
 router.get("/relative/detail/:id", relativeController.getIdRelative);
 
+// get list name Relative
+router.get("/relative/listName", relativeController.getNameListRelative);
 //////////////////////////////////////////////
 //////////////////////////////////
 ////////////////

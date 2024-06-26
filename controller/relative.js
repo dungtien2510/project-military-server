@@ -27,7 +27,21 @@ const mongoose = require("mongoose");
 /////////////////////////
 
 //client
+//get list name
+exports.getNameListRelative = async (req, res, next) => {
+  try {
+    const name = req.query.name;
 
+    const result = await Relative.find({
+      name: { $regex: name, $options: "i" }, // $options: "i" để không phân biệt chữ hoa chữ thường $regex: Sử dụng biểu thức chính quy để tìm kiếm các tên chứa từ khóa được cung cấp.
+    });
+    return res.status(200).json(result);
+  } catch (err) {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
 //get list người thân
 exports.getRelatives = async (req, res, next) => {
   const query = {};
@@ -42,7 +56,7 @@ exports.getRelatives = async (req, res, next) => {
         .select("_id")
         .exec();
       console.log(military);
-      query["id_military.id"] = { $in: military.map((v) => v._id) };
+      query["id_military.id"] = { $in: military.mapp((v) => v._id) };
     }
     if (req.query.idMilitary) {
       const military = await military
@@ -54,7 +68,14 @@ exports.getRelatives = async (req, res, next) => {
       const arr = Object.entries(query).map(([key, value]) => ({
         [key]: value,
       }));
-      return { $and: [{ $text: { $search: name } }, ...arr] };
+      return {
+        $and: [
+          {
+            name: { $regex: name, $options: "i" }, // $options: "i" để không phân biệt chữ hoa chữ thường $regex: Sử dụng biểu thức chính quy để tìm kiếm các tên chứa từ khóa được cung cấp.
+          },
+          ...arr,
+        ],
+      };
     };
     console.log(query);
     const relatives = await Relative.find(
