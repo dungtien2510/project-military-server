@@ -644,9 +644,16 @@ exports.postAddMilitary = async (req, res, next) => {
     status: req.body.status,
 
     marital_status: req.body.marital_status,
-    reward: req.body.reward ? req.body.reward : [],
-    discipline: req.body.discipline ? req.body.discipline : [],
+    // reward: req.body.reward ? req.body.reward : [],
+    // discipline: req.body.discipline ? req.body.discipline : [],
   };
+  if (req.body.reward) {
+    const reward = req.body.reward.filter((v) => v.type === "reward");
+    const discipline = req.body.reward.filter((v) => v.type === "discipline");
+    console.log(reward, "sdfas", discipline);
+    data.reward = reward;
+    data.discipline = discipline;
+  }
   if (req.body.phone) data.phone = req.body.phone;
   if (req.body.note) data.note = req.body.note;
   if (req.body.reason) data.reason = req.body.reason;
@@ -662,7 +669,7 @@ exports.postAddMilitary = async (req, res, next) => {
     if (family && family.length > 0) {
       const familyNew = {};
       family.forEach((v, i) => {
-        familyNew[v.role] = v.id;
+        familyNew[v.role] = v._id;
       });
       data.family = familyNew;
       const military = new Military(data);
