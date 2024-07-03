@@ -15,9 +15,8 @@ const locationSchema = new Schema({
     id: {
       type: Schema.Types.ObjectId,
       ref: "Military",
-      required: true,
     },
-    fullName: { type: String, required: true },
+    fullName: { type: String },
   },
 });
 

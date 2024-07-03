@@ -22,6 +22,10 @@ const adminRouter = require("./router/admin");
 const MONGODB_URI =
   "mongodb+srv://dungtien2510:dung25101997@cluster0.3n1yvil.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
+//server pc
+// const MONGODB_URI =
+//   "mongodb://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?authSource=admin&replicaSet=myRepl";
+
 //tạo máy chủ và xuất nó để sử dụng websocket
 // const server = http.createServer(app);
 // module.exports = server;

@@ -96,16 +96,12 @@ exports.locationValidator = [
       if (!superior) throw new Error("Không tồn tại cấp trên này");
     }
   }),
-  body("id_master")
-    .not()
-    .isEmpty()
-    .withMessage("Vui lòng chọn người đứng đầu!")
-    .custom(async (value, { req }) => {
-      if (value) {
-        const idMilitary = await Military.findById(value);
-        if (!idMilitary) throw new Error("Quân nhân không tồn tại!");
-      }
-    }),
+  body("id_master").custom(async (value, { req }) => {
+    if (value) {
+      const idMilitary = await Military.findById(value);
+      if (!idMilitary) throw new Error("Quân nhân không tồn tại!");
+    }
+  }),
 ];
 
 //add location
@@ -138,19 +134,21 @@ exports.postAddLocation = async (req, res, next) => {
     // } else {
     //   locationData.level = req.body.level;
     // }
+    if (req.body.id_master) {
+      const master = await Military.findById(req.body.id_master);
 
-    const master = await Military.findById(req.body.id_master);
-
-    locationData.master = {
-      id: req.body.id_master,
-      fullName: master.name,
-    };
+      locationData.master = {
+        id: req.body.id_master,
+        fullName: master.name,
+      };
+      // Update location of military
+      await Military.findByIdAndUpdate(master._id, {
+        location: idLocation._id,
+      });
+    }
     if (req.body.superior) locationData.superior = req.body.superior;
     const location = new Location(locationData);
     const idLocation = await location.save();
-
-    // Update location of military
-    await Military.findByIdAndUpdate(master._id, { location: idLocation._id });
 
     return res
       .status(200)
