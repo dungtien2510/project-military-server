@@ -17,7 +17,7 @@ const userSchema = new Schema({
     required: true,
   },
   role: { type: String, required: true },
-  position: { type: String, required: true },
+  position: { type: String },
   location: { type: Schema.Types.ObjectId, ref: "Locations" },
 });
 

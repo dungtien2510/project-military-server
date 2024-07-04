@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const http = require("http");
+const bcrypt = require("bcryptjs");
+const Location = require("./models/location");
+
 //moongoose
 const mongoose = require("mongoose");
 
@@ -19,13 +22,12 @@ const clientRouter = require("./router/client");
 //router admin
 const adminRouter = require("./router/admin");
 
-const MONGODB_URI =
-  "mongodb+srv://dungtien2510:dung25101997@cluster0.3n1yvil.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+// const MONGODB_URI =
+//   "mongodb+srv://dungtien2510:dung25101997@cluster0.3n1yvil.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 //server pc
-// const MONGODB_URI =
-//   "mongodb://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/?authSource=admin&replicaSet=myRepl";
-
+// const MONGODB_URI = "mongodb://localhost:27017/";
+const MONGODB_URI = "mongodb://127.0.0.1:27017/military";
 //tạo máy chủ và xuất nó để sử dụng websocket
 // const server = http.createServer(app);
 // module.exports = server;
@@ -113,7 +115,51 @@ const protection = (requestRole) => {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////
 ///////////////
+
+//configuration user
+// User.find()
+//   .exec()
+//   .then((user) => {
+//     if (!user || user.length === 0) {
+//       const newUser = new User({ user: "admin", role: "admin" });
+//     }
+//   });
+const ConfigUser = async () => {
+  try {
+    const user = await User.find().exec();
+    if (user && user.length > 0) return;
+    const nameLocation = "Sư đoàn 372";
+    const levelLocation = 10;
+    const location = new Location({
+      name: nameLocation,
+      level: levelLocation,
+    });
+    const newLocation = await location.save();
+    console.log(newLocation);
+    //create user
+
+    const password = "123Aa@123";
+    bcrypt.hash(password, 12).then((passwordBcrypt) => {
+      const user = new User({
+        name_user: "admin",
+        password: passwordBcrypt,
+        location: newLocation._id,
+        fullName: "Admin",
+        role: "admin",
+      });
+
+      // Lưu thông tin người dùng vào cơ sở dữ liệu
+      return user.save();
+    });
+  } catch (err) {
+    const error = new Error(err);
+    error.httpError = 500;
+    return console.error(error);
+  }
+};
+
 //router client
+
 app.use("/client", protection("client"), clientRouter);
 
 // router admin
@@ -175,6 +221,7 @@ mongoose
   .connect(MONGODB_URI)
   //đặt tạo text index ở tệp chạy ứng dụng là vì nó là một nhiệm vụ cấu hình cơ sở dữ liệu và chỉ cần thực hiện một lần khi ứng dụng bắt đầu chạy.
   .then(() => createTextIndex())
+  .then(() => ConfigUser())
   .then((result) => {
     const server = app.listen(5000);
     // //io.on("connection", (socket) => { ... }): Khi một client kết nối với máy chủ WebSocket, đoạn mã này sẽ được thực thi.
