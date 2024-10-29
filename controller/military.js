@@ -706,6 +706,13 @@ exports.postAddMilitary = async (req, res, next) => {
   }
 };
 
+exports.postManyMilitary = async (req, res, next) => {
+  try {
+  } catch (erro) {
+    console.error(erro);
+  }
+};
+
 //detete military
 exports.deleteMilitary = async (req, res, next) => {
   try {

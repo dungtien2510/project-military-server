@@ -116,14 +116,7 @@ const protection = (requestRole) => {
 /////////////////////////////////
 ///////////////
 
-//configuration user
-// User.find()
-//   .exec()
-//   .then((user) => {
-//     if (!user || user.length === 0) {
-//       const newUser = new User({ user: "admin", role: "admin" });
-//     }
-//   });
+// configuration user and location
 const ConfigUser = async () => {
   try {
     const user = await User.find().exec();
@@ -135,7 +128,7 @@ const ConfigUser = async () => {
       level: levelLocation,
     });
     const newLocation = await location.save();
-    console.log(newLocation);
+    console.log("configuration user");
     //create user
 
     const password = "123Aa@123";

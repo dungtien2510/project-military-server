@@ -36,9 +36,6 @@ router.post(
     body("password", "Invalid password")
       .isLength({ min: 8 })
 
-      //.isAlphanumeric(): Phương thức này kiểm tra xem trường "password" chỉ bao gồm số và chữ cái (không bao gồm các ký tự đặc biệt) hay không.
-      .isAlphanumeric()
-
       //: Middleware custom này kiểm tra mật khẩu đã nhập so với mật khẩu đã lưu trong cơ sở dữ liệu bằng cách sử dụng await bcrypt.compare() để so sánh hai mật khẩu
       .custom(async (value, { req }) => {
         const userDoc = await User.findOne({ name_user: req.body.name_user });

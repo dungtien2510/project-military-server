@@ -102,6 +102,7 @@ exports.postPosition = async (req, res, next) => {
   try {
     const position = new Position(positionData);
     const result = await position.save();
+    console.log("thêm thành công chức vụ thành công");
     return res
       .status(200)
       .json({ message: "Thêm Chức vụ thành công!", result });
